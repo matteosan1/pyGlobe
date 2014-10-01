@@ -81,9 +81,20 @@ class Analysis:
         self.entries = self.tree.GetEntries()
 
     def loop(self):
-        for z in xrange(self.entries):
-            self.tree.GetEntry(z)
-            self.processPair()
+        import time
+        startTime = time.time()
+
+        try:
+            for z in xrange(self.entries):
+                if ((z + 1) % 50000 == 0):
+                    elapsed = time.time() - startTime
+                    remaining = (self.entries - z) * (elapsed / z)
+                    print "processing event %d/%d (%.1f %%)" % (z+1, self.entries, (z+1) / float(self.entries) * 100), \
+                          "remaning time: %.1f minutes" % (remaining / 60.0)
+                self.tree.GetEntry(z)
+                self.processPair()
+        except KeyboardInterrupt:
+            print "CTRL-C pressed, saving data processed so far"
             
     def processPair(self):
         itype = self.tree.itype
