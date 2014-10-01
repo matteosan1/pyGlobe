@@ -33,7 +33,7 @@ class WSProducer:
                 self.addDataHist(name)
                 name = "data" + chargeStr + "_cat"+str(i)
                 self.addDataSet(name)
-                name = "data" + chargeStr + "_binned_cat"+str(i)
+                name = "data_binned" + chargeStr + "_cat"+str(i)
                 self.addDataHist(name)
 
     #----------------------------------------
