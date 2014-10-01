@@ -1,0 +1,29 @@
+file=emu_output_v5.root
+
+dodata=True
+dolegend=True  dolog=False
+dotitles=False  donothing=False
+dotext=False
+legx1=0.6   NReBin=1  Debug=False
+
+text=CMS Preliminary 2012 \n#sqrt{s}=8 TeV L_{int} = 19.7 fb^{-1}
+
+itype=0    order=0  plot=1 leg=1 color=0   marker=22 scale=1. displayname=Data
+itype=101  order=1  plot=1 leg=1 color=870 marker=0  scale=1. displayname=DY
+itype=102  order=2  plot=1 leg=1 color=870 marker=0  scale=1. displayname=DY_low
+itype=103  order=3  plot=1 leg=1 color=419 marker=0  scale=1. displayname=WG
+itype=104  order=4  plot=1 leg=1 color=601 marker=0  scale=1. displayname=ZG
+itype=105  order=5  plot=1 leg=1 color=616 marker=0  scale=1. displayname=TT
+itype=106  order=6  plot=1 leg=1 color=616 marker=0  scale=1. displayname=TW
+itype=107  order=7  plot=1 leg=1 color=616 marker=0  scale=1. displayname=T_W
+itype=108  order=8  plot=1 leg=1 color=419 marker=0  scale=1. displayname=WGstarE
+itype=109  order=9  plot=1 leg=1 color=401 marker=0  scale=1. displayname=WZJets2L
+itype=110  order=10 plot=1 leg=1 color=419 marker=0  scale=1. displayname=WGstarMu
+itype=111  order=11 plot=1 leg=1 color=601 marker=0  scale=1. displayname=ZZJets
+itype=112  order=12 plot=1 leg=1 color=401 marker=0  scale=1. displayname=WZJets3L
+itype=113  order=13 plot=1 leg=1 color=601 marker=0  scale=1. displayname=ZZJets2L
+itype=114  order=14 plot=1 leg=1 color=407 marker=0  scale=1. displayname=GluGluWW
+itype=115  order=15 plot=1 leg=1 color=407 marker=0  scale=1. displayname=WWJets
+itype=116  order=16 plot=1 leg=1 color=601 marker=0  scale=1. displayname=ZZJets4L
+itype=-125 order=17 plot=1 leg=1 color=632 marker=0  scale=1. displayname=Hem
+
