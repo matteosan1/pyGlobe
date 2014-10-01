@@ -25,15 +25,16 @@ class WSProducer:
         # keep the number of categories
         self.numCategories = cats
 
-        for i in xrange(cats):
-            name = "sig_cat"+str(i)
-            self.addDataHist(name)
-            name = "bkg_cat"+str(i)
-            self.addDataHist(name)
-            name = "data_cat"+str(i)
-            self.addDataSet(name)
-            name = "data_binned_cat"+str(i)
-            self.addDataHist(name)
+        for chargeStr in ("", "_muplus", "_muminus"):
+            for i in xrange(cats):
+                name = "sig" + chargeStr + "_cat"+str(i)
+                self.addDataHist(name)
+                name = "bkg" + chargeStr + "_cat"+str(i)
+                self.addDataHist(name)
+                name = "data" + chargeStr + "_cat"+str(i)
+                self.addDataSet(name)
+                name = "data" + chargeStr + "_binned_cat"+str(i)
+                self.addDataHist(name)
 
     #----------------------------------------
         
@@ -63,19 +64,31 @@ class WSProducer:
 
     #----------------------------------------
 
-    def fillDataset(self, itype, cat, mass, weight):
+    def fillDataset(self, itype, cat, mass, weight, muonCharge):
+
         self.mass.setVal(mass)
-   
-        if (itype == 0):
-            name = "data_cat"+str(cat)
-            self.datasets[name].add(self.set, weight)
-            name = "data_binned_cat"+str(cat)
-            self.datahists[name].add(self.set, weight)
-        elif (itype > 0):
-            name = "bkg_cat"+str(cat)
-            self.datahists[name].add(self.set, weight)
+
+        chargeStrs = [ "" ]
+        if muonCharge == +1:
+            chargeStrs.append("_muplus")
+        elif muonCharge == -1:
+            chargeStrs.append("_muminus")
         else:
-            name = "sig_cat"+str(cat)
-            self.datahists[name].add(self.set, weight)
+            raise Exception("muon charge must be +1 or -1, got " + str(muonCharge))
+
+        # loop over 'no charge distinction' and 'charge of the muon'
+        for chargeStr in chargeStrs:
+   
+            if (itype == 0):
+                name = "data" + chargeStr + "_cat"+str(cat)
+                self.datasets[name].add(self.set, weight)
+                name = "data_binned" + chargeStr + "_cat"+str(cat)
+                self.datahists[name].add(self.set, weight)
+            elif (itype > 0):
+                name = "bkg" + chargeStr + "_cat"+str(cat)
+                self.datahists[name].add(self.set, weight)
+            else:
+                name = "sig" + chargeStr + "_cat"+str(cat)
+                self.datahists[name].add(self.set, weight)
 
     #----------------------------------------            

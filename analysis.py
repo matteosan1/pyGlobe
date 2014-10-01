@@ -49,6 +49,9 @@ class Analysis:
         self.file = ROOT.TFile(self.options.input)
         self.tree = self.file.Get("opttree")
 
+        # variables with 1 are electron variables,
+        # variables with 2 are muon variables
+
         self.tree.SetBranchStatus("*",0)
         self.tree.SetBranchStatus("run",1)
         self.tree.SetBranchStatus("itype",1)
@@ -77,6 +80,9 @@ class Analysis:
         self.tree.SetBranchStatus("eta2", 1)
         self.tree.SetBranchStatus("phi1", 1)
         self.tree.SetBranchStatus("phi2", 1)
+
+        # reco Candidate (?) charge of the muon
+        self.tree.SetBranchStatus("ch_2", 1)
 
         self.entries = self.tree.GetEntries()
 
@@ -124,6 +130,8 @@ class Analysis:
         if (p == -1):
             return
 
+        muonCharge = self.tree.ch_2[p]
+
         #self.counter.Fill(0, itype, cats[p], weight)
         self.counter.Fill(0, itype, cats[p], 1)
 
@@ -135,7 +143,7 @@ class Analysis:
                 self.allHistos.fillHisto("massFinal", cats[p], self.samples[itype], masses[p], weight)
                 self.allHistos.fillHisto("massZoomFinal", cats[p], self.samples[itype], masses[p], weight)
                 self.counter.Fill(1, itype, cats[p], 1)
-                self.wsProducer.fillDataset(itype, cats[p], masses[p], weight)
+                self.wsProducer.fillDataset(itype, cats[p], masses[p], weight, muonCharge)
 
             self.allHistos.fillHisto("met", cats[p], self.samples[itype], met, weight)
             self.allHistos.fillHisto("et1",  cats[p], self.samples[itype], et1[p],    weight)
