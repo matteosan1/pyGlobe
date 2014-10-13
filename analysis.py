@@ -136,6 +136,10 @@ class Analysis:
         self.counter.Fill(0, itype, cats[p], 1)
 
         if (masses[p] > 20.):
+            # scale the signal
+            if itype < 0:
+                weight *= 0.01
+
             #print "cat:",cats[p]
             #print "print:",emuSelection(cats[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)
             if (emuSelection(cats[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
