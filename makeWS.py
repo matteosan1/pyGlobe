@@ -5,7 +5,8 @@ gcs = []
 
 
 class WSProducer:
-    mass = ROOT.RooRealVar("CMS_emu_mass", "CMS_emu_mass", 2000, 0, 200)
+    mass = ROOT.RooRealVar("CMS_emu_mass", "CMS_emu_mass", 100, 20, 200)
+    mass.setBins(90)
     workspace = ROOT.RooWorkspace("CMS_emu_workspace") 
     datasets  = {}
     datahists = {}
