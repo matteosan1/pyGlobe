@@ -48,6 +48,22 @@ class WSProducer:
         self.datahists[name] = ROOT.RooDataHist(name, name, self.set, "weight")
 
     #----------------------------------------
+
+    def getWsObj(self, name):
+        # retrieves an object by name from the workspace
+        obj = self.workspace.obj(name)
+        if obj == None:
+            raise Exception("could not find an object named '%s' in the workspace" % name)
+
+        return obj
+    
+    #----------------------------------------
+
+    def importObj(self, obj):
+        # imports and object into the workspace
+        getattr(self.workspace, 'import')(obj, ROOT.RooFit.RecycleConflictNodes())
+
+    #----------------------------------------
         
     def saveWS(self):
         self.usedXsectBRVar = ROOT.RooConstVar("usedXsectBR", "cross section *BR used to produce the initial workspace", self.usedXsectBR)
