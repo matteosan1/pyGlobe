@@ -66,66 +66,67 @@ class WSProducer:
     #----------------------------------------
 
     # produce charge asymmetry related objects and import into the workspace
-    def saveAcpObjects():
+    def saveAcpObjects(self):
         # common to all categories (for the moment)
         acpVar = ROOT.RooRealVar("aCP","CP/charge asymmetry",0, -1, +1); gcs.append(acpVar)
 
         for cat in xrange(self.numCategories):
 
-            # for building the sum affected by aCP 
-            pdfList = ROOT.RooArgList()
-            coeffList = ROOT.RooArgList()
+            for proc in ("sig", "bkg"):
+                # for building the sum affected by aCP 
+                pdfList = ROOT.RooArgList()
+                coeffList = ROOT.RooArgList()
 
-            for muonCharge, chargeStr in ((-1, "_muminus"),
-                                          (+1, "_muplus")):
+                for muonCharge, chargeStr in ((-1, "_muminus"),
+                                              (+1, "_muplus")):
 
-                # get the number of expected events variable
-                normVar = self.getWsObj("pdf_{proc}_cat{cat}_norm".format(**locals()))
-                assert normVar != None
+                    # get the number of expected events variable
+                    normVar = self.getWsObj("pdf_{proc}_cat{cat}_norm".format(**locals()))
+                    assert normVar != None
 
-                # build a normalization variable which changes with aCP
-                sign = ("%+d" % muonCharge)[0] # '+' or '-'
+                    # build a normalization variable which changes with aCP
+                    sign = ("%+d" % muonCharge)[0] # '+' or '-'
 
-                name = "acp_sig{chargeStr}_cat{cat}".format(**locals())
+                    name = "acp_sig{chargeStr}_cat{cat}".format(**locals())
 
-                # n+/- = n / 2 * (1 +/- aCP)
-                tmp = ROOT.RooArgList(self.getWsObj("pdf_sig_cat{cat}_norm".format(**locals())), # the total number of expected events for both charges
-                                      acpVar)
+                    # n+/- = n / 2 * (1 +/- aCP)
+                    tmp = ROOT.RooArgList(self.getWsObj("pdf_sig_cat{cat}_norm".format(**locals())), # the total number of expected events for both charges
+                                          acpVar)
 
-                normVar = ROOT.RooFormulaVar(name + "_norm", name + "_norm",
-                                             "0.5 * @0 * (1 %s @1)" % sign, tmp)
-                gcs.append(normVar)
+                    normVar = ROOT.RooFormulaVar(name + "_norm", name + "_norm",
+                                                 "0.5 * @0 * (1 %s @1)" % sign, tmp)
+                    gcs.append(normVar)
 
-                # for the RooAddPdf
-                coeffList.add(normVar)
-                pdfList.add(self.getWsObj("pdf_sig{chargeStr}_cat{cat}".format(**locals())))
+                    # for the RooAddPdf
+                    coeffList.add(normVar)
+                    pdfList.add(self.getWsObj("pdf_sig{chargeStr}_cat{cat}".format(**locals())))
 
-            # end of loop over muon charges
+                # end of loop over muon charges
 
-            # build a RooAddPdf 
-            name = "acp_sig_cat{cat}".format(**locals())
-            pdf = ROOT.RooAddPdf(name,
-                                 "aCP enabled signal PDF for cat {cat}".format(**locals()),
-                                 pdfList,
-                                 coeffList,
-                                 False        # recursive fraction
-                                 )
+                # build a RooAddPdf 
+                name = "acp_sig_cat{cat}".format(**locals())
+                pdf = ROOT.RooAddPdf(name,
+                                     "aCP enabled signal PDF for cat {cat}".format(**locals()),
+                                     pdfList,
+                                     coeffList,
+                                     False        # recursive fraction
+                                     )
 
-            gcs.append(pdf)
-            self.importObj(pdf)
+                gcs.append(pdf)
+                self.importObj(pdf)
 
-            # do we need the corresponding norm variable for combine or does it take it from the RooAddPdf ?
-            if True:
-                # this is essentially a clone (under a different name so combine can find it)
-                # of the sum of + and - expected number of events
-                name = "acp_sig_cat{cat}_norm".format(**locals())
+                # do we need the corresponding norm variable for combine or does it take it from the RooAddPdf ?
+                if True:
+                    # this is essentially a clone (under a different name so combine can find it)
+                    # of the sum of + and - expected number of events
+                    name = "acp_sig_cat{cat}_norm".format(**locals())
 
-                normVar = self.getWsObj("pdf_sig_cat{cat}_norm".format(**locals())).Clone(name)
-                gcs.append(normVar)
+                    normVar = self.getWsObj("pdf_sig_cat{cat}_norm".format(**locals())).Clone(name)
+                    gcs.append(normVar)
 
-                self.importObj(normVar)
+                    self.importObj(normVar)
 
-
+            # end of loop over signal/background
         # end of loop over all categories
 
     #----------------------------------------
