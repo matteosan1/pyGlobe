@@ -3,6 +3,9 @@ import ROOT
 # the garbage collection saver (to avoid python deleting ROOT objects which ROOT still uses internally)
 gcs = []
 
+# whether to include charge distinguishing objects
+# or not into the workspace
+makeAcpObjects = True
 
 class WSProducer:
     mass = ROOT.RooRealVar("CMS_emu_mass", "CMS_emu_mass", 100, 20, 200)
@@ -17,6 +20,11 @@ class WSProducer:
     set = ROOT.RooArgSet("set")
     set.add(mass)
     usedXsectBR = 0.
+
+    allChargeStr = [ "" ]
+    if makeAcpObjects:
+        allChargeStr += [ "_muplus", "_muminus" ]
+
     #----------------------------------------
     
     def setXsectBR(self, val):
@@ -26,7 +34,7 @@ class WSProducer:
         # keep the number of categories
         self.numCategories = cats
 
-        for chargeStr in ("", "_muplus", "_muminus"):
+        for chargeStr in self.allChargeStr:
             for i in xrange(cats):
                 name = "sig" + chargeStr + "_cat"+str(i)
                 self.addDataHist(name)
@@ -132,6 +140,49 @@ class WSProducer:
     #----------------------------------------
         
     def saveWS(self):
+
+        #----------
+        # make RooHistPdfs from the RooDataHists for signal and background
+        #----------
+
+        for chargeStr in self.allChargeStr:
+            for cat in xrange(self.numCategories):
+
+                for proc in ("sig", "bkg"):
+                
+                    name = "{proc}{chargeStr}_cat{cat}".format(**locals())
+
+                    dataHist = self.datahists[name]
+
+                    # create a RooHistPdf
+                    pdf = ROOT.RooHistPdf("pdf_" + name,
+                                          "pdf for {proc} cat {cat}".format(**locals()),
+                                          self.set,            # variables
+                                          dataHist # underlying RooDataHist
+                                          )
+                    gcs.append(pdf)
+                    self.importObj(pdf)
+
+                    # create a norm variable
+                    # TODO: will combine attempt to float this for the background ?
+                    normVar = ROOT.RooRealVar("pdf_" + name + "_norm",
+                                              "normalization for pdf for {proc} cat {cat}".format(**locals()),
+
+                                              dataHist.sumEntries(), # nominal value
+                                              0,                     # lower bound
+                                              1e6)                   # upper bound - can we find something better ?
+                    gcs.append(normVar)
+                    self.importObj(normVar)
+
+        #----------
+        # CP symmetry related objects
+        # see e.g. arxiv:1406.5303
+        #----------
+
+        if makeAcpObjects:
+            self.saveAcpObjects()
+        
+        #----------
         self.usedXsectBRVar = ROOT.RooConstVar("usedXsectBR", "cross section *BR used to produce the initial workspace", self.usedXsectBR)
 
         getattr(self.workspace, 'import')(self.usedXsectBRVar, ROOT.RooFit.RecycleConflictNodes())
@@ -152,12 +203,14 @@ class WSProducer:
         self.mass.setVal(mass)
 
         chargeStrs = [ "" ]
-        if muonCharge == +1:
-            chargeStrs.append("_muplus")
-        elif muonCharge == -1:
-            chargeStrs.append("_muminus")
-        else:
-            raise Exception("muon charge must be +1 or -1, got " + str(muonCharge))
+
+        if makeAcpObjects:
+            if muonCharge == +1:
+                chargeStrs.append("_muplus")
+            elif muonCharge == -1:
+                chargeStrs.append("_muminus")
+            else:
+                raise Exception("muon charge must be +1 or -1, got " + str(muonCharge))
 
         # loop over 'no charge distinction' and 'charge of the muon'
         for chargeStr in chargeStrs:
