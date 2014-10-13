@@ -135,7 +135,8 @@ class Analysis:
         #self.counter.Fill(0, itype, cats[p], weight)
         self.counter.Fill(0, itype, cats[p], 1)
 
-        if (masses[p] > 20.):
+        if (masses[p] > 20. and masses[p] < 200):
+
             # scale the signal
             if itype < 0:
                 weight *= 0.01
