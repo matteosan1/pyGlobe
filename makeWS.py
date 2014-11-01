@@ -172,6 +172,11 @@ class WSProducer:
                                               0,                     # lower bound
                                               1e6)                   # upper bound - can we find something better ?
                     gcs.append(normVar)
+
+                    # IMPORTANT: make the norm variables constant
+                    #            (otherwise we'll get a very funny LLR curve...)
+                    normVar.setConstant(True)
+                    
                     self.importObj(normVar)
 
         #----------
