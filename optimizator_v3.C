@@ -28,22 +28,24 @@ void optimizator_v3(const char* outputFileName = "TMVA_cic") {
   TFile* outputFile = TFile::Open(a, "RECREATE");
   TMVA::Factory *factory = new TMVA::Factory(outputFileName, outputFile, "!V:!Silent");
 
+  factory->AddVariable("et1", 'F');
+  factory->AddVariable("et2", 'F');
   factory->AddVariable("id1", 'F');
   factory->AddVariable("iso1", 'F');
   factory->AddVariable("met", 'F');
-  factory->AddVariable("njets20", 'F');
+  //factory->AddVariable("njets20", 'F');
   factory->AddVariable("btag1", 'F');
   factory->AddVariable("btag2", 'F');
 
   factory->AddSpectator("itype", 'F'); 
-  //factory->AddSpectator("cat", 'F');
+  factory->AddSpectator("cat", 'F');
 
 
   TFile* input = TFile::Open("test.root");
   TTree* inputTree = (TTree*)input->Get("new_opttree");
   outputFile->cd();
 
-  factory->SetInputTrees(inputTree, "itype < 0 && iso1<0.5 && mass >100 && id2==11", "itype > 0 && iso1<0.5 && mass>100 && id2==11");  
+  factory->SetInputTrees(inputTree, "itype < 0 && mass >100 && id2==11 && et1>20 && et2>20", "itype > 0 && mass>100 && id2==11 && et1>20 && et2>20");  
   factory->SetWeightExpression("weight");
 
   factory->PrepareTrainingAndTestTree("", "",
@@ -54,14 +56,14 @@ void optimizator_v3(const char* outputFileName = "TMVA_cic") {
   TMVA::MethodCategory* mcat[nMethods];
   TMVA::MethodBase* methodBase[nMethods];
 
-  TString vars = "id1:iso1:met:njets20:btag1:btag2";
+  TString vars = "et1:et2:id1:iso1:met:btag1:btag2";
   
   TCut cat_definition[nCategories];
   cat_definition[0] = "cat == 0";
   
   TString methodOptions[nMethods];
-  methodOptions[1] = "!H:!V:EffMethod=EffSel:FitMethod=MC";
-  methodOptions[0] = "!H:!V:EffMethod=EffSel:FitMethod=GA:VarProp[0]=FMax:VarProp[1]=FMin:VarProp[2]=FMin:VarProp[3]=FMin:VarProp[3]=FMin";
+  //methodOptions[1] = "!H:!V:EffMethod=EffSel:FitMethod=MC";
+  methodOptions[0] = "!H:!V:EffMethod=EffSel:FitMethod=GA:VarProp[0]=FMax:VarProp[1]=FMax:VarProp[2]=FMax:VarProp[3]=FMin:VarProp[4]=FMin:VarProp[5]=FMin:VarProp[6]=FMin";
   
   for (int i=0; i<1; i++) {
     sprintf(a, "Category_Cuts%d", i);

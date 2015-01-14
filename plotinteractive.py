@@ -1315,7 +1315,7 @@ def MakeMergeOverlayLines(sampletype):
                 if  samples[itype].addtoleg is 1:
                     if DebugNew:
                         print "thishist.GetMaximum()",thishist.GetMaximum()
-                        print "fullhist.GetMaximum()",fullhist.GetMaximum()
+                        print "fullhist.GetMaximum()",fullhist.GetSum()
                         print "index,itype",index,itype
                     # individual histogram properties
                     #thishist.SetFillColor(samples[itype].color)
@@ -1368,7 +1368,7 @@ def MakeOverlayLines(sampletype, icat):
             if  samples[itype].addtoleg is 1:
                 if DebugNew:
                     print "thishist.GetMaximum()",thishist.GetMaximum()
-                    print "fullhist.GetMaximum()",fullhist.GetMaximum()
+                    print "fullhist.GetMaximum()",fullhist.GetSum()
                     print "index,itype",index,itype
                 # individual histogram properties
                 #thishist.SetFillColor(samples[itype].color)

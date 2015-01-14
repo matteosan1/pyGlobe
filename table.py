@@ -26,7 +26,7 @@ class table:
                 print "___________"
                 keys = sorted(self.tables[checkPoint][c].keys())
                 for k in keys:
-                    print "%20s %.2f"%(samples[k], self.tables[checkPoint][c][k])
+                    print "%20s %.2f"%(samples[k][0], self.tables[checkPoint][c][k])
                     if (k > 0):
                         nbkg[checkPoint] += self.tables[checkPoint][c][k]
                 print "%20s"%("TOT. Bkg"),
@@ -40,7 +40,7 @@ class table:
                 print "___________"
                 keys = sorted(self.tables[0][c].keys())
                 for k in keys:
-                    print "%20s"%(samples[k]),
+                    print "%20s"%(samples[k][0]),
                     for cp in xrange(self.nCheckPoints):
                         if (k in self.tables[cp][c].keys()):
                             print "%10.2f"%(self.tables[cp][c][k]),

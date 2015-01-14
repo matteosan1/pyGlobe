@@ -1,6 +1,13 @@
 import ROOT
 import array
 
+def getSignalSamples(samples):
+    signalNames = dict()
+    for s in sorted(samples, reverse=True):
+        if (s < 0):
+            signalNames[s] = samples[s]
+    return signalNames
+
 def parseInputfiles(filename):
     # xsec, c.o.m. energy
     generalInfo = [-1, 8]
@@ -11,7 +18,9 @@ def parseInputfiles(filename):
     for l in lines:
         if ("#" not in l):# and "typ" in l):
             items = l.split()
-            itype = -1
+            itype = None
+            xsec = 0.
+            kfac = 0.
             name = ""
             for item in items:
                 if (item.find("intL=") is not -1):
@@ -22,9 +31,14 @@ def parseInputfiles(filename):
                     itype = int(item.split("=")[1])
                 elif (item.find("Nam=") is not -1):
                     name = str(item.split("=")[1])
+                elif (item.find("xsec") is not -1):
+                    xsec = float(item.split("=")[1])
+                elif (item.find("kfac") is not -1):
+                    kfac = float(item.split("=")[1])
                 #else:
                 #    print "Item",item,"not parsed."
-            samples[itype] = name
+            if (itype is not None):
+                samples[itype] = (name, xsec*kfac)
 
     return samples, generalInfo
 
@@ -53,7 +67,7 @@ def inputfileTree(mysamples):
     for i,s in enumerate(mysamples):
         itype[i] = s
         temp = ROOT.TObjString()
-        temp.SetString(mysamples[s])
+        temp.SetString(mysamples[s][0])
         inshortnames[i] = temp
     
     inputfiletree.Fill()
@@ -146,7 +160,7 @@ class histoContainer:
     def createHistos(self, samples):
         for s in samples:
             for i in xrange(self.ncat[-1]):
-                plotkey = self.name[-1]+"_cat"+str(i)+"_"+samples[s]
+                plotkey = self.name[-1]+"_cat"+str(i)+"_"+samples[s][0]
                 if (self.histo_type[-1] == 0): # TH1F
                     self.histos[plotkey] = ROOT.TH1F(plotkey, plotkey, self.xbins[-1], self.xmin[-1], self.xmax[-1])
                 if (self.histo_type[-1] == 1): # TH1I
@@ -159,7 +173,7 @@ class histoContainer:
         return s
 
     def fillHisto(self, n, cat, sample, var, w=1.):
-        key = n+"_cat"+str(cat)+"_"+sample
+        key = n+"_cat"+str(cat)+"_"+sample[0]
         self.histos[key].Fill(var, w)
 
 def parsePlotvariables(filename, samples):

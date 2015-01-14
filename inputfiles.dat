@@ -1,38 +1,46 @@
 intL=19701 histfile=out.root output=schifo.root
 
+typ=101 Nam=DY       Dir=/hadoop/cms/store/user/matteo/reduced/20140924041125_DYJetsToLL_50_inf scal=1.0 kfac=1.0 xsec=3532.0
+typ=102 Nam=DY_low   Dir=/hadoop/cms/store/user/matteo/reduced/20140924041524_DYJetsToLL_10_50 	scal=1.0 kfac=1.0 xsec=860.0
+typ=103 Nam=WG       Dir=/hadoop/cms/store/user/matteo/reduced/20140924041809_WGToLNuG	     	scal=1.0 kfac=1.0 xsec=553.9
+typ=104 Nam=ZG       Dir=/hadoop/cms/store/user/matteo/reduced/20140924041938_ZGToLLG	     	scal=1.0 kfac=1.0 xsec=159.12
+typ=105 Nam=TT       Dir=/hadoop/cms/store/user/matteo/reduced/20140924042109_TTTo2L2Nu2B    	scal=1.0 kfac=1.0 xsec=23.64
+typ=106 Nam=TW       Dir=/hadoop/cms/store/user/matteo/reduced/20140924042400_T_tW	     	scal=1.0 kfac=1.0 xsec=11.18
+typ=107 Nam=T_W      Dir=/hadoop/cms/store/user/matteo/reduced/20140924042455_Tbar_tW	       	scal=1.0 kfac=1.0 xsec=11.18
+typ=108 Nam=WGstarE  Dir=/hadoop/cms/store/user/matteo/reduced/20140924042547_WGstarToLNu2E    	scal=1.0 kfac=1.0 xsec=5.87
+typ=115 Nam=WWJets   Dir=/hadoop/cms/store/user/matteo/reduced/20140924042631_WWJetsTo2L2Nu    	scal=1.0 kfac=1.0 xsec=5.81
+typ=109 Nam=WZJets2L Dir=/hadoop/cms/store/user/matteo/reduced/20140924042803_WZJetsTo2L2Q     	scal=1.0 kfac=1.0 xsec=5.09
+typ=110 Nam=WGstarMu Dir=/hadoop/cms/store/user/matteo/reduced/20140924042939_WGstarToLNu2Mu   	scal=1.0 kfac=1.0 xsec=1.91
+typ=111 Nam=ZZJets   Dir=/hadoop/cms/store/user/matteo/reduced/20140924043110_ZZJetsTo2L2Q     	scal=1.0 kfac=1.0 xsec=1.28
+typ=112 Nam=WZJets3L Dir=/hadoop/cms/store/user/matteo/reduced/20140924043239_WZJetsTo3LNu     	scal=1.0 kfac=1.0 xsec=0.73
+typ=113 Nam=ZZJets2L Dir=/hadoop/cms/store/user/matteo/reduced/20140924043431_ZZJetsTo2L2Nu    	scal=1.0 kfac=1.0 xsec=0.365
+typ=114 Nam=GluGluWW Dir=/hadoop/cms/store/user/matteo/reduced/20140924043558_GluGluToWWTo4L   	scal=1.0 kfac=1.0 xsec=0.18
+typ=116 Nam=ZZJets4L Dir=/hadoop/cms/store/user/matteo/reduced/20140924043627_ZZJetsTo4L       	scal=1.0 kfac=1.0 xsec=0.0921
+typ=118 Nam=Wjets    Dir=/hadoop/cms/store/user/matteo/reduced/20141208042553_WJets                      scal=1.0 kfac=1.0 xsec=1.0
+typ=119 Nam=ZtautauEmbd Dir=/hadoop/cms/store/user/matteo/reduced/20150109073228_Ztt_A                  scal=1.0 kfac=1.0 xsec=1180
+typ=119 Nam=ZtautauEmbd Dir=/hadoop/cms/store/user/matteo/reduced/20150109074054_Ztt_B                  scal=1.0 kfac=1.0 xsec=1180
+typ=119 Nam=ZtautauEmbd Dir=/hadoop/cms/store/user/matteo/reduced/20150109074425_Ztt_C                  scal=1.0 kfac=1.0 xsec=1180
+typ=119 Nam=ZtautauEmbd Dir=/hadoop/cms/store/user/matteo/reduced/20150109074806_Ztt_D                  scal=1.0 kfac=1.0 xsec=1180
+
+
+typ=-215 Nam=Hem_ggh_115 kfac=1. xsec=2.266  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204084549_Hem_ggh_115
+typ=-220 Nam=Hem_ggh_120 kfac=1. xsec=2.086  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204085240_Hem_ggh_120
+typ=-225 Nam=Hem_ggh_125 kfac=1. xsec=1.927  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204085550_Hem_ggh_125
+typ=-230 Nam=Hem_ggh_130 kfac=1. xsec=1.785  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204085837_Hem_ggh_130
+typ=-240 Nam=Hem_ggh_140 kfac=1. xsec=1.542  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204090117_Hem_ggh_140
+typ=-250 Nam=Hem_ggh_150 kfac=1. xsec=1.355  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204090350_Hem_ggh_150
+typ=-315 Nam=Hem_vbf_115 kfac=1. xsec=0.1729 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204090621_Hem_vbf_115
+typ=-320 Nam=Hem_vbf_120 kfac=1. xsec=0.1649 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204090848_Hem_vbf_120
+typ=-325 Nam=Hem_vbf_125 kfac=1. xsec=0.1578 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204091120_Hem_vbf_125
+typ=-330 Nam=Hem_vbf_130 kfac=1. xsec=0.1511 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204091359_Hem_vbf_130
+typ=-340 Nam=Hem_vbf_140 kfac=1. xsec=0.1389 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204091644_Hem_vbf_140
+typ=-350 Nam=Hem_vbf_150 kfac=1. xsec=0.1280 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204092012_Hem_vbf_150
+
 typ=0 Nam=Data kfac=1. xsec=1. scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140912054426_MuEG_Run2012A
 typ=0 Nam=Data kfac=1. xsec=1. scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140912055112_MuEG_Run2012B
 typ=0 Nam=Data kfac=1. xsec=1. scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140912055539_MuEG_Run2012C
 typ=0 Nam=Data kfac=1. xsec=1. scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140912060259_MuEG_Run2012D
 typ=0 Nam=Data kfac=1. xsec=1. scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/MuEG_recovery
-
-typ=-125 Nam=Hem kfac=1. xsec=1.927 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140922081428_Hem
-
-#typ=40  ind=1 lum=1.0e10  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140829143308_TTJets	        kfac=1.0 xsec=225.2      Nam=TTJets	      
-#typ=1   ind=1 lum=1.0e10  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140829142814_DY               	kfac=1.0 xsec=3532.8     Nam=DY 
-#typ=10  ind=1 lum=1.0e10  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140829144954_ZZJetsTo4L	        kfac=1.0 xsec=0.1769     Nam=ZZJetsTo4L	      
-#typ=30  ind=1 lum=1.0e10  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140829144128_WZJetsTo3LNu		kfac=1.0 xsec=1.0575     Nam=WZJetsTo3LNu
-#typ=20  ind=1 lum=1.0e10  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140829143727_WWJetsTo2L2Nu       	kfac=1.0 xsec=1.5132     Nam=WWJetsTo2L2Nu
-#typ=21  ind=1 lum=1.0e10  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140902074926_WJets       		kfac=1.0 xsec=13680      Nam=WJets
-#typ=50 ind=1 lum=1.0e10 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140905131626_QCD kfac=1.0 xsec=134680 Nam=QCD
-
-typ=101 Nam=DY Dir=/hadoop/cms/store/user/matteo/reduced/20140911021002_DYJetsToLL_50_inf     scal=1.0 kfac=1.0 xsec=3532.0
-typ=102 Nam=DY_low Dir=/hadoop/cms/store/user/matteo/reduced/20140911021243_DYJetsToLL_10_50  scal=1.0 kfac=1.0 xsec=860.0
-typ=103 Nam=WG Dir=/hadoop/cms/store/user/matteo/reduced/20140911021507_WGToLNuG 	      scal=1.0 kfac=1.0 xsec=553.9
-typ=104 Nam=ZG Dir=/hadoop/cms/store/user/matteo/reduced/20140911021725_ZGToLLG 	      scal=1.0 kfac=1.0 xsec=159.12
-typ=105 Nam=TT Dir=/hadoop/cms/store/user/matteo/reduced/20140911021945_TTTo2L2Nu2B 	      scal=1.0 kfac=1.0 xsec=23.64
-typ=106 Nam=TW Dir=/hadoop/cms/store/user/matteo/reduced/20140911022207_T_tW 		      scal=1.0 kfac=1.0 xsec=11.18
-typ=107 Nam=T_W Dir=/hadoop/cms/store/user/matteo/reduced/20140911022327_Tbar_tW 	      scal=1.0 kfac=1.0 xsec=11.18
-typ=108 Nam=WGstarE Dir=/hadoop/cms/store/user/matteo/reduced/20140911022440_WGstarToLNu2E    scal=1.0 kfac=1.0 xsec=5.87
-typ=115 Nam=WWJets Dir=/hadoop/cms/store/user/matteo/reduced/20140911022544_WWJetsTo2L2Nu     scal=1.0 kfac=1.0 xsec=5.81
-typ=109 Nam=WZJets2L Dir=/hadoop/cms/store/user/matteo/reduced/20140911022804_WZJetsTo2L2Q    scal=1.0 kfac=1.0 xsec=5.09
-typ=110 Nam=WGstarMu Dir=/hadoop/cms/store/user/matteo/reduced/20140911023025_WGstarToLNu2Mu  scal=1.0 kfac=1.0 xsec=1.91
-typ=111 Nam=ZZJets Dir=/hadoop/cms/store/user/matteo/reduced/20140911023247_ZZJetsTo2L2Q      scal=1.0 kfac=1.0 xsec=1.28
-typ=112 Nam=WZJets3L Dir=/hadoop/cms/store/user/matteo/reduced/20140911023552_WZJetsTo3LNu    scal=1.0 kfac=1.0 xsec=0.73
-typ=113 Nam=ZZJets2L Dir=/hadoop/cms/store/user/matteo/reduced/20140911023827_ZZJetsTo2L2Nu   scal=1.0 kfac=1.0 xsec=0.365
-typ=114 Nam=GluGluWW Dir=/hadoop/cms/store/user/matteo/reduced/20140911024044_GluGluToWWTo4L  scal=1.0 kfac=1.0 xsec=0.18
-typ=116 Nam=ZZJets4L Dir=/hadoop/cms/store/user/matteo/reduced/20140911024122_ZZJetsTo4L      scal=1.0 kfac=1.0 xsec=0.0921
-
 
 inputBranches ssleptonanalysis/reduction_output.dat
 inputBranches ssleptonanalysis/analysis_input.dat

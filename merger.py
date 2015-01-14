@@ -24,7 +24,7 @@ def mergeOther(inputFile, listOfTrees):
         print "Adding ", elem
         ttree = inputFile.Get(elem)
         ttree.SetBranchStatus('*', 1)
-        outTree.CopyEntries(ttree, -1, "FAST")
+        outTree.CopyEntries(ttree, -1,  "FAST")
     
     outFile.cd()
     outTree.Write()
@@ -51,7 +51,7 @@ if (dirname != ""):
 for k in keys:
     name = k.GetName()
     className = k.GetClassName()
-
+    
     if (len(tags_to_remove) > 0):
         toSkip = False
         for t in tags_to_remove:
