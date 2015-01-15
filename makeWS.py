@@ -7,6 +7,10 @@ gcs = []
 # or not into the workspace
 makeAcpObjects = True
 
+# whether or not to symmetrize the histograms and normalizations
+# for the two charges for the expected
+symmetrizeCharges = True
+
 class WSProducer:
     mass = ROOT.RooRealVar("CMS_emu_mass", "CMS_emu_mass", 100, 20, 200)
     mass.setBins(90)
@@ -208,28 +212,43 @@ class WSProducer:
         self.mass.setVal(mass)
 
         chargeStrs = [ "" ]
+        weightFactors = [ 1 ] # mostly for symmetrizing the expected charge specific histograms
 
         if makeAcpObjects:
-            if muonCharge == +1:
-                chargeStrs.append("_muplus")
-            elif muonCharge == -1:
-                chargeStrs.append("_muminus")
+            if symmetrizeCharges:
+                # we append half of the weight to both charges
+                # (note that the errors on the bins will be too small
+                # by a factor sqrt(2))
+                chargeStrs.extend(["_muplus", "_muminus"])
+                weightFactors.extend([0.5, 0.5])
             else:
-                raise Exception("muon charge must be +1 or -1, got " + str(muonCharge))
+                if muonCharge == +1:
+                    chargeStrs.append("_muplus")
+                    weightFactors.append(1)
+                elif muonCharge == -1:
+                    chargeStrs.append("_muminus")
+                    weightFactors.append(1)
+                else:
+                    raise Exception("muon charge must be +1 or -1, got " + str(muonCharge))
+
+
 
         # loop over 'no charge distinction' and 'charge of the muon'
-        for chargeStr in chargeStrs:
+        for chargeStr, weightFactor in zip(chargeStrs, weightFactors):
    
             if (itype == 0):
+                # this is data
                 name = "data" + chargeStr + "_cat"+str(cat)
                 self.datasets[name].add(self.set, weight)
                 name = "data_binned" + chargeStr + "_cat"+str(cat)
                 self.datahists[name].add(self.set, weight)
-            elif (itype > 0):
-                name = "bkg" + chargeStr + "_cat"+str(cat)
-                self.datahists[name].add(self.set, weight)
             else:
-                name = "sig" + chargeStr + "_cat"+str(cat)
-                self.datahists[name].add(self.set, weight)
+                # this is MC
+                if (itype > 0):
+                    name = "bkg" + chargeStr + "_cat"+str(cat)
+                else:
+                    name = "sig" + chargeStr + "_cat"+str(cat)
+
+                self.datahists[name].add(self.set, weight * weightFactor)
 
     #----------------------------------------            
