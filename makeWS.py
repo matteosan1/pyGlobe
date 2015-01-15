@@ -100,6 +100,10 @@ class WSProducer:
 
             self.itypeToMassAndProc[itype] = dict(mass = mass, proc = proc)
 
+            # add a dataset for signal MC
+            assert not makeAcpObjects, "not yet implemented for charge separation"
+            for cat in range(cats):
+                self.addDataSet("sig_Hem_unbinned_%s_%d_cat%d" % (proc, mass, cat))
 
         # convert to a list
         self.signalMasses = sorted(list(self.signalMasses))
@@ -200,7 +204,14 @@ class WSProducer:
                 if (itype > 0):
                     name = "bkg" + chargeStr + "_cat"+str(cat)
                 else:
-                    name = "sig" + chargeStr + "_cat"+str(cat)
+                    # must find mass hypothesis and production process first
+                    massHyp = self.itypeToMassAndProc[itype]['mass']
+                    proc    = self.itypeToMassAndProc[itype]['proc']
+
+                    # add also to signal datasets
+                    self.datasets["sig_Hem" + chargeStr + "_unbinned_%s_%d_cat%d" % (proc, massHyp, cat)].add(self.set, weight)
+
+                    name = "sig_Hem" + chargeStr + "_%s_%d_cat%d" % (proc, massHyp, cat)
 
                 self.datahists[name].add(self.set, weight * weightFactor)
 
