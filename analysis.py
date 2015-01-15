@@ -84,6 +84,11 @@ class Analysis:
 
     def loop(self):
         for z in xrange(self.entries):
+            if (z+1) % 10000 == 0:
+                print "\rprocessing event %d/%d" % (z+1, self.entries),"(%5.1f%%)  " % ((z+1) / float(self.entries) * 100),
+                import sys
+                sys.stdout.flush()
+
             self.tree.GetEntry(z)
             self.processPair()
             
