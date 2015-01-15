@@ -12,6 +12,42 @@ symmetrizeCharges = True
 # whether to produce the charge separated objects or not
 makeAcpObjects = False
 
+
+#----------------------------------------------------------------------
+
+def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fractionVars):
+
+    numGaussians = len(deltaMuVars)
+    assert numGaussians == len(sigmaVars)
+    assert len(fractionVars) == numGaussians - 1
+
+    pdfs = ROOT.RooArgList()
+
+    for i in range(numGaussians):
+        # massHypothesis + deltaM
+        meanVar = ROOT.RooFormulaVar(pdfName + "_mu", "mean Gaussian %d" % i,
+                                     "@0 + @1",
+                                     ROOT.RooArgList(mhypVar, deltaMuVars[i]))
+        gcs.append(meanVar)
+
+        pdf = ROOT.RooGaussian(pdfName + "_g%d", "Gaussian %d" % i,
+                               recoMassVar,
+                               meanVar,
+                               sigmaVars[i])
+        gcs.append(pdf)
+
+        pdfs.add(pdf)
+
+
+    # build the sum
+    coeffs = ROOT.RooArgList()
+    for fractionVar in fractionVars:
+        coeffs.add(fractionVar)
+
+    return ROOT.RooAddPdf(pdfName, pdfName, pdfs, coeffs, True)
+
+#----------------------------------------------------------------------
+
 class WSProducer:
     mass = ROOT.RooRealVar("CMS_emu_mass", "CMS_emu_mass", 180, 20, 200)
     workspace = ROOT.RooWorkspace("CMS_emu_workspace") 
