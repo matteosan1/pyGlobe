@@ -247,7 +247,7 @@ class WSProducer:
                                 for gaussIndex in range(numGaussians)]
                     sigmavars = [ ROOT.RooRealVar(("sigma_g%d_m%d_" % (gaussIndex, mass)) + suffix,
                                                 "delta mu",
-                                                0,
+                                                1,
                                                 0.001,
                                                 10)
                                 for gaussIndex in range(numGaussians)]
