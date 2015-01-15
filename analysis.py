@@ -1,5 +1,5 @@
 import ROOT
-from helpers import getEMuPair, emuSelection
+from helpers import getEMuPair, emuSelectionV3Simplified, emuSelectionV3SimplifiedN_1ET1, emuSelectionV3SimplifiedN_1ET2, emuSelectionV3SimplifiedN_1NJETS,emuSelectionV3SimplifiedN_1MET, emuSelectionV3SimplifiedN_1ID, emuSelectionV3SimplifiedN_1ISO, emuSelectionV3SimplifiedN_1BTAG
 from  makeWS import WSProducer
 import plotfromoptree, table
 
@@ -17,7 +17,7 @@ class Analysis:
 
     def finalize(self):
         #self.wsProducer.finalize()
-        self.wsProducer.setXsectBR(self.generalInfo[0])
+        self.wsProducer.setGlobalParameters(self.generalInfo[0])
         self.wsProducer.saveWS()
 
         self.counter.Print(self.samples)
@@ -40,17 +40,15 @@ class Analysis:
         print "Writing plotvariables Tree..."
         self.plotvariabletree = plotfromoptree.plotvariableTree(self.allHistos)
 
+        self.signalSamples = plotfromoptree.getSignalSamples(self.samples)
         self.wsProducer = WSProducer()
-        self.counter = table.table(2, 3)
-        self.wsProducer.prepareDataSets(3)
+        self.counter = table.table(2, 5)
+        self.wsProducer.prepareDataSets(11, self.signalSamples)
         
 
     def loadTree(self):
         self.file = ROOT.TFile(self.options.input)
         self.tree = self.file.Get("opttree")
-
-        # variables with 1 are electron variables,
-        # variables with 2 are muon variables
 
         self.tree.SetBranchStatus("*",0)
         self.tree.SetBranchStatus("run",1)
@@ -59,6 +57,7 @@ class Analysis:
         self.tree.SetBranchStatus("pairs", 1)
         self.tree.SetBranchStatus("mass",1)
         self.tree.SetBranchStatus("cat",1)
+        self.tree.SetBranchStatus("vbfcat",1)
         self.tree.SetBranchStatus("sumpt", 1)
         self.tree.SetBranchStatus("ch1_1", 1)
         self.tree.SetBranchStatus("ch2_1", 1)
@@ -81,26 +80,12 @@ class Analysis:
         self.tree.SetBranchStatus("phi1", 1)
         self.tree.SetBranchStatus("phi2", 1)
 
-        # reco Candidate (?) charge of the muon
-        self.tree.SetBranchStatus("ch_2", 1)
-
         self.entries = self.tree.GetEntries()
 
     def loop(self):
-        import time
-        startTime = time.time()
-
-        try:
-            for z in xrange(self.entries):
-                if ((z + 1) % 50000 == 0):
-                    elapsed = time.time() - startTime
-                    remaining = (self.entries - z) * (elapsed / z)
-                    print "processing event %d/%d (%.1f %%)" % (z+1, self.entries, (z+1) / float(self.entries) * 100), \
-                          "remaning time: %.1f minutes" % (remaining / 60.0)
-                self.tree.GetEntry(z)
-                self.processPair()
-        except KeyboardInterrupt:
-            print "CTRL-C pressed, saving data processed so far"
+        for z in xrange(self.entries):
+            self.tree.GetEntry(z)
+            self.processPair()
             
     def processPair(self):
         itype = self.tree.itype
@@ -109,6 +94,7 @@ class Analysis:
 
         pairs = self.tree.pairs
         cats = self.tree.cat
+        vbfcats = self.tree.vbfcat
         weight = self.tree.weight
         masses = self.tree.mass
         et1 = self.tree.et1
@@ -130,43 +116,74 @@ class Analysis:
         if (p == -1):
             return
 
-        muonCharge = self.tree.ch_2[p]
+        if (masses[p] > 20. and masses[p] < 200.):    
+            if (emuSelectionV3SimplifiedN_1NJETS(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
+                self.allHistos.fillHisto("njet20", 0, self.samples[itype], njets20, weight)
 
-        #self.counter.Fill(0, itype, cats[p], weight)
-        self.counter.Fill(0, itype, cats[p], 1)
+            if (emuSelectionV3SimplifiedN_1MET(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
+                self.allHistos.fillHisto("met", 0, self.samples[itype], met, weight)
 
-        if (masses[p] > 20. and masses[p] < 200):
+            if (emuSelectionV3SimplifiedN_1BTAG(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):                
+                if (njets20 == 1):
+                    self.allHistos.fillHisto("btag", 0, self.samples[itype], btag1, weight)
+                if (njets20 > 1):
+                    self.allHistos.fillHisto("btag", 0, self.samples[itype], btag2, weight)
 
-            # scale the signal
-            if itype < 0:
-                weight *= 0.01
+            if (emuSelectionV3SimplifiedN_1ET1(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):                
+                if (abs(self.tree.eta1[p]) < 1.479):
+                    self.allHistos.fillHisto("et1", 0, self.samples[itype], et1[p],    weight)
+                else:
+                    self.allHistos.fillHisto("et1", 1, self.samples[itype], et1[p],    weight)
 
+            if (emuSelectionV3SimplifiedN_1ET2(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):                
+                if (abs(self.tree.eta2[p]) < 1.479):
+                    self.allHistos.fillHisto("et2", 0, self.samples[itype], et2[p],    weight)
+                else:
+                    self.allHistos.fillHisto("et2", 1, self.samples[itype], et2[p],    weight)
+
+            if (emuSelectionV3SimplifiedN_1ID(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):                
+                if (abs(self.tree.eta1[p]) < 1.479):
+                    self.allHistos.fillHisto("iso1", 0, self.samples[itype], iso1[p],   weight)
+                else:
+                    self.allHistos.fillHisto("iso1", 1, self.samples[itype], iso1[p],   weight)
+
+            if (emuSelectionV3SimplifiedN_1ISO(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):                
+                if (abs(self.tree.eta1[p]) < 1.479):
+                    self.allHistos.fillHisto("id1", 0, self.samples[itype], id1[p],    weight)
+                else:
+                    self.allHistos.fillHisto("id1", 1, self.samples[itype], id1[p],    weight)
+
+
+            #if (self.options.blind and itype == 0 and masses[p] >=110 and masses[p] <= 160):
+            #    return
+            
+            #self.counter.Fill(0, itype, cats[p], weight)
+            self.counter.Fill(0, itype, cats[p], 1)
+
+            #if (emuSelectionV2(cats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
+            if (emuSelectionV3Simplified(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
+                plotcat = cats[p] 
+                if (vbfcats[p] != -1):
+                    plotcat = 2 + vbfcats[p]
+                self.allHistos.fillHisto("massFinal", plotcat, self.samples[itype], masses[p], weight)
+                self.allHistos.fillHisto("massZoomFinal", plotcat, self.samples[itype], masses[p], weight)
+                self.counter.Fill(1, itype, plotcat, 1)
+                
+                wsCats = cats[p]*3 + njets20
+                if (njets20 >= 2):
+                    wsCats = cats[p]*3 + 2
+                if (vbfcats[p] != -1):
+                    wsCats = 8 + vbfcats[p]
+                self.wsProducer.fillDataset(itype, wsCats, masses[p], weight)
+            
             #print "cat:",cats[p]
             #print "print:",emuSelection(cats[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)
-            if (emuSelection(cats[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
-                #print "si"
-                self.allHistos.fillHisto("massFinal", cats[p], self.samples[itype], masses[p], weight)
-                self.allHistos.fillHisto("massZoomFinal", cats[p], self.samples[itype], masses[p], weight)
-                self.counter.Fill(1, itype, cats[p], 1)
-                self.wsProducer.fillDataset(itype, cats[p], masses[p], weight, muonCharge)
-
-            self.allHistos.fillHisto("met", cats[p], self.samples[itype], met, weight)
-            self.allHistos.fillHisto("et1",  cats[p], self.samples[itype], et1[p],    weight)
-            self.allHistos.fillHisto("et2",  cats[p], self.samples[itype], et2[p],    weight)
-            
-            self.allHistos.fillHisto("id1",  cats[p], self.samples[itype], id1[p],    weight)
-            self.allHistos.fillHisto("id2",  cats[p], self.samples[itype], id2[p],    weight)
-            self.allHistos.fillHisto("iso1", cats[p], self.samples[itype], iso1[p],   weight)
-            self.allHistos.fillHisto("iso2", cats[p], self.samples[itype], iso2[p],   weight)
-            
-            if (met < 45.):
-                self.allHistos.fillHisto("njet20", cats[p], self.samples[itype], njets20, weight)
-            
-                if    ((njets20 == 0)):
-                    if (self.options.blind and itype == 0 and masses[p] >=110 and masses[p] <= 160):
-                        self.allHistos.fillHisto("mass", cats[p], self.samples[itype], 0, weight)
-                        self.allHistos.fillHisto("masszoom", cats[p], self.samples[itype], 0, weight)
-                    else:
-                        self.allHistos.fillHisto("mass", cats[p], self.samples[itype], masses[p], weight)
-                        self.allHistos.fillHisto("masszoom", cats[p], self.samples[itype], masses[p], weight)
+            #
+            #    if    ((njets20 == 0)):
+            #        if (self.options.blind and itype == 0 and masses[p] >=110 and masses[p] <= 160):
+            #            self.allHistos.fillHisto("mass", cats[p], self.samples[itype], 0, weight)
+            #            self.allHistos.fillHisto("masszoom", cats[p], self.samples[itype], 0, weight)
+            #        else:
+            #            self.allHistos.fillHisto("mass", cats[p], self.samples[itype], masses[p], weight)
+            #            self.allHistos.fillHisto("masszoom", cats[p], self.samples[itype], masses[p], weight)
 

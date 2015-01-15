@@ -11,11 +11,458 @@ def getEMuPair(nPairs, sumpts):
             
     return bestPair
 
+def emuSelectionV2(cat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (njets >= 3):
+        return False
+    if (cat == 0 and njets == 0):
+        if (et1 > 25.2 and et2 > 21.7 and id1 > 0.706 and iso1 < 0.318 and met < 32.6):
+            return True
+    if (cat == 1 and njets == 0):
+        if (et1 > 20.2 and et2 > 22.4 and id1 > 0.717 and iso1 < 0.248 and met < 32.9):
+            return True
+    if (cat == 2 and njets == 0):
+        if (et1 > 22.0 and et2 > 24.5 and id1 > 0.827 and iso1 < 0.174 and met < 20.1):
+            return True
+
+    if (cat == 0 and njets == 1):
+        if (et1 > 29.9 and et2 > 22.3 and id1 > 0.896 and iso1 < 0.095 and met < 25.1 and btag1 < 0.398):
+            return True
+    if (cat == 1 and njets == 1):
+        if (et1 > 20.7 and et2 > 21.0 and id1 > 0.798 and iso1 < 0.374 and met < 28.8 and btag1 < 0.508):
+            return True
+    if (cat == 2 and njets == 1):
+        if (et1 > 26.4 and et2 > 20.9 and id1 > 0.734 and iso1 < 0.353 and met < 32.5 and btag1 < 0.816):
+            return True
+
+    if (cat == 0 and njets >= 2):
+        if (et1 > 24.5 and et2 > 28.6 and id1 > 0.835 and iso1 < 0.081 and met < 35.9 and btag1 < 0.353 and btag2 < 0.495):
+            return True
+    if (cat == 1 and njets >= 2):
+        if (et1 > 22.7 and et2 > 21.2 and id1 > 0.754 and iso1 < 0.331 and met < 32.7 and btag1 < 0.539 and btag2 < 0.768):
+            return True
+    if (cat == 2 and njets >= 2):
+        if (et1 > 23.2 and et2 > 21.2 and id1 > 0.829 and iso1 < 0.178 and met < 24.6 and btag1 < 0.242 and btag2 < 0.751):
+            return True
+
+    return False
+
+def emuSelectionV3(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (njets >= 3):
+        return False
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            if (et1 > 26.3 and et2 > 28.1 and id1 > 0.800 and iso1 < 0.497 and met < 30.2):
+                return True
+        if (cat == 1 and njets == 0):
+            if (et1 > 21.3 and et2 > 20.6 and id1 > 0.576 and iso1 < 0.472 and met < 30.7):
+                return True
+        if (cat == 2 and njets == 0):
+            if (et1 > 21.3 and et2 > 20.6 and id1 > 0.576 and iso1 < 0.472 and met < 30.7):
+                return True
+    
+        if (cat == 0 and njets == 1):
+            if (et1 > 21.1 and et2 > 22.7 and id1 > 0.652 and iso1 < 0.109 and met < 27.1 and btag1 < 0.38):
+                return True
+        if (cat == 1 and njets == 1):
+            if (et1 > 22.4 and et2 > 21.8 and id1 > 0.622 and iso1 < 0.095 and met < 26.3 and btag1 < 0.480):
+                return True
+        if (cat == 2 and njets == 1):
+            if (et1 > 23.3 and et2 > 24.8 and id1 > 0.684 and iso1 < 0.083 and met < 22.7 and btag1 < 0.308):
+                return True
+    
+        if (cat == 0 and njets >= 2):
+            if (et1 > 26.4 and et2 > 27.3 and id1 > 0.810 and iso1 < 0.197 and met < 26.4 and btag1 < 0.378 and btag2 < 0.476):
+                return True
+        if (cat == 1 and njets >= 2):
+            if (et1 > 21.5 and et2 > 20.4 and id1 > 0.684 and iso1 < 0.223 and met < 32.2 and btag1 < 0.508 and btag2 < 0.568):
+                return True
+        if (cat == 2 and njets >= 2):
+            if (et1 > 21.5 and et2 > 20.4 and id1 > 0.684 and iso1 < 0.223 and met < 32.2 and btag1 < 0.508 and btag2 < 0.568):
+                return True
+    else:
+        if (vbfcat == 1):
+            if (et1 > 21.3 and et2 > 20.8 and id1 > 0.780 and iso1 < 0.0666 and met < 30.5 and btag1 < 0.58 and btag2 < 0.007):
+                return True
+        if (vbfcat == 2):
+            if (et1 > 21.3 and et2 > 20.9 and id1 > 0.970 and iso1 < 0.0594 and met < 27.4 and btag1 < 0.62 and btag2 < 0.33):
+                return True
+
+    return False
+
+
+def emuSelectionV3Simplified(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (njets >= 3):
+        return False
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            if (et1 > 25 and et2 > 25 and id1 > 0.800 and iso1 < 0.500 and met < 30):
+                return True
+        if (cat == 1 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+        if (cat == 2 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+    
+        if (cat == 0 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.650 and iso1 < 0.110 and met < 30 and btag1 < 0.38):
+                return True
+        if (cat == 1 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+        if (cat == 2 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+    
+        if (cat == 0 and njets >= 2):
+            if (et1 > 25 and et2 > 25 and id1 > 0.810 and iso1 < 0.200 and met < 25 and btag1 < 0.38 and btag2 < 0.48):
+                return True
+        if (cat == 1 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+        if (cat == 2 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+    else:
+        if (vbfcat == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < 0.067 and met < 30 and btag1 < 0.58 and btag2 < 0.01):
+                return True
+        if (vbfcat == 2):
+            if (et1 > 22 and et2 > 22 and id1 > 0.97 and iso1 < 0.060 and met < 25 and btag1 < 0.62 and btag2 < 0.30):
+                return True
+
+    return False
+
+def emuSelectionV3SimplifiedN_1ET2(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (njets >= 3):
+        return False
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            if (et1 > 25 and id1 > 0.800 and iso1 < 0.500 and met < 30):
+                return True
+        if (cat == 1 and njets == 0):
+            if (et1 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+        if (cat == 2 and njets == 0):
+            if (et1 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+    
+        if (cat == 0 and njets == 1):
+            if (et1 > 22 and id1 > 0.650 and iso1 < 0.110 and met < 30 and btag1 < 0.38):
+                return True
+        if (cat == 1 and njets == 1):
+            if (et1 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+        if (cat == 2 and njets == 1):
+            if (et1 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+    
+        if (cat == 0 and njets >= 2):
+            if (et1 > 25 and id1 > 0.810 and iso1 < 0.200 and met < 25 and btag1 < 0.38 and btag2 < 0.48):
+                return True
+        if (cat == 1 and njets >= 2):
+            if (et1 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+        if (cat == 2 and njets >= 2):
+            if (et1 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+    else:
+        if (vbfcat == 1):
+            if (et1 > 22 and id1 > 0.78 and iso1 < 0.067 and met < 30 and btag1 < 0.58 and btag2 < 0.01):
+                return True
+        if (vbfcat == 2):
+            if (et1 > 22 and id1 > 0.97 and iso1 < 0.060 and met < 25 and btag1 < 0.62 and btag2 < 0.30):
+                return True
+
+    return False
+
+def emuSelectionV3SimplifiedN_1ET1(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (njets >= 3):
+        return False
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            if (et2 > 25 and id1 > 0.800 and iso1 < 0.500 and met < 30):
+                return True
+        if (cat == 1 and njets == 0):
+            if (et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+        if (cat == 2 and njets == 0):
+            if (et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+    
+        if (cat == 0 and njets == 1):
+            if (et2 > 22 and id1 > 0.650 and iso1 < 0.110 and met < 30 and btag1 < 0.38):
+                return True
+        if (cat == 1 and njets == 1):
+            if (et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+        if (cat == 2 and njets == 1):
+            if (et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+    
+        if (cat == 0 and njets >= 2):
+            if (et2 > 25 and id1 > 0.810 and iso1 < 0.200 and met < 25 and btag1 < 0.38 and btag2 < 0.48):
+                return True
+        if (cat == 1 and njets >= 2):
+            if (et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+        if (cat == 2 and njets >= 2):
+            if (et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+    else:
+        if (vbfcat == 1):
+            if (et2 > 22 and id1 > 0.78 and iso1 < 0.067 and met < 30 and btag1 < 0.58 and btag2 < 0.01):
+                return True
+        if (vbfcat == 2):
+            if (et2 > 22 and id1 > 0.97 and iso1 < 0.060 and met < 25 and btag1 < 0.62 and btag2 < 0.30):
+                return True
+
+    return False
+
+
+def emuSelectionV3SimplifiedN_1NJETS(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            if (et1 > 25 and et2 > 25 and id1 > 0.800 and iso1 < 0.500 and met < 30):
+                return True
+        if (cat == 1 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+        if (cat == 2 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+    
+        if (cat == 0 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.650 and iso1 < 0.110 and met < 30 and btag1 < 0.38):
+                return True
+        if (cat == 1 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+        if (cat == 2 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+    
+        if (cat == 0 and njets >= 2):
+            if (et1 > 25 and et2 > 25 and id1 > 0.810 and iso1 < 0.200 and met < 25 and btag1 < 0.38 and btag2 < 0.48):
+                return True
+        if (cat == 1 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+        if (cat == 2 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+    else:
+        if (vbfcat == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < 0.067 and met < 30 and btag1 < 0.58 and btag2 < 0.01):
+                return True
+        if (vbfcat == 2):
+            if (et1 > 22 and et2 > 22 and id1 > 0.97 and iso1 < 0.060 and met < 25 and btag1 < 0.62 and btag2 < 0.30):
+                return True
+
+    return False
+
+
+
+def emuSelectionV3SimplifiedN_1BTAG(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (njets >= 3):
+        return False
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            if (et1 > 25 and et2 > 25 and id1 > 0.800 and iso1 < 0.500 and met < 30):
+                return True
+        if (cat == 1 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+        if (cat == 2 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+                return True
+    
+        if (cat == 0 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.650 and iso1 < 0.110 and met < 30):
+                return True
+        if (cat == 1 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22):
+                return True
+        if (cat == 2 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22):
+                return True
+    
+        if (cat == 0 and njets >= 2):
+            if (et1 > 25 and et2 > 25 and id1 > 0.810 and iso1 < 0.200 and met < 25):
+                return True
+        if (cat == 1 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32):
+                return True
+        if (cat == 2 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32):
+                return True
+    else:
+        if (vbfcat == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < 0.067 and met < 30):
+                return True
+        if (vbfcat == 2):
+            if (et1 > 22 and et2 > 22 and id1 > 0.97 and iso1 < 0.060 and met < 25):
+                return True
+
+    return False
+
+def emuSelectionV3SimplifiedN_1MET(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (njets >= 3):
+        return False
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            if (et1 > 25 and et2 > 25 and id1 > 0.800 and iso1 < 0.500):
+                return True
+        if (cat == 1 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470):
+                return True
+        if (cat == 2 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470):
+                return True
+    
+        if (cat == 0 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.650 and iso1 < 0.110 and btag1 < 0.38):
+                return True
+        if (cat == 1 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and btag1 < 0.48):
+                return True
+        if (cat == 2 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and btag1 < 0.48):
+                return True
+    
+        if (cat == 0 and njets >= 2):
+            if (et1 > 25 and et2 > 25 and id1 > 0.810 and iso1 < 0.200 and btag1 < 0.38 and btag2 < 0.48):
+                return True
+        if (cat == 1 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+        if (cat == 2 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+    else:
+        if (vbfcat == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < 0.067 and btag1 < 0.58 and btag2 < 0.01):
+                return True
+        if (vbfcat == 2):
+            if (et1 > 22 and et2 > 22 and id1 > 0.97 and iso1 < 0.060 and btag1 < 0.62 and btag2 < 0.30):
+                return True
+
+    return False
+
+
+def emuSelectionV3SimplifiedN_1ISO(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (njets >= 3):
+        return False
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            if (et1 > 25 and et2 > 25 and id1 > 0.800 and met < 30):
+                return True
+        if (cat == 1 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and met < 30):
+                return True
+        if (cat == 2 and njets == 0):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and met < 30):
+                return True
+    
+        if (cat == 0 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.650 and met < 30 and btag1 < 0.38):
+                return True
+        if (cat == 1 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and met < 22 and btag1 < 0.48):
+                return True
+        if (cat == 2 and njets == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and met < 22 and btag1 < 0.48):
+                return True
+    
+        if (cat == 0 and njets >= 2):
+            if (et1 > 25 and et2 > 25 and id1 > 0.810 and met < 25 and btag1 < 0.38 and btag2 < 0.48):
+                return True
+        if (cat == 1 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+        if (cat == 2 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+    else:
+        if (vbfcat == 1):
+            if (et1 > 22 and et2 > 22 and id1 > 0.78 and met < 30 and btag1 < 0.58 and btag2 < 0.01):
+                return True
+        if (vbfcat == 2):
+            if (et1 > 22 and et2 > 22 and id1 > 0.97 and met < 25 and btag1 < 0.62 and btag2 < 0.30):
+                return True
+
+    return False
+
+
+
+def emuSelectionV3SimplifiedN_1ID(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag2, njets):
+    if (id2 != 11):
+        return False
+    if (njets >= 3):
+        return False
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            if (et1 > 25 and et2 > 25 and iso1 < 0.500 and met < 30):
+                return True
+        if (cat == 1 and njets == 0):
+            if (et1 > 20 and et2 > 20 and iso1 < 0.470 and met < 30):
+                return True
+        if (cat == 2 and njets == 0):
+            if (et1 > 20 and et2 > 20 and iso1 < 0.470 and met < 30):
+                return True
+    
+        if (cat == 0 and njets == 1):
+            if (et1 > 22 and et2 > 22 and iso1 < 0.110 and met < 30 and btag1 < 0.38):
+                return True
+        if (cat == 1 and njets == 1):
+            if (et1 > 22 and et2 > 22 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+        if (cat == 2 and njets == 1):
+            if (et1 > 22 and et2 > 22 and iso1 < 0.095 and met < 22 and btag1 < 0.48):
+                return True
+    
+        if (cat == 0 and njets >= 2):
+            if (et1 > 25 and et2 > 25 and iso1 < 0.200 and met < 25 and btag1 < 0.38 and btag2 < 0.48):
+                return True
+        if (cat == 1 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+        if (cat == 2 and njets >= 2):
+            if (et1 > 20 and et2 > 20 and iso1 < 0.220 and met < 32 and btag1 < 0.51 and btag2 < 0.57):
+                return True
+    else:
+        if (vbfcat == 1):
+            if (et1 > 22 and et2 > 22 and iso1 < 0.067 and met < 30 and btag1 < 0.58 and btag2 < 0.01):
+                return True
+        if (vbfcat == 2):
+            if (et1 > 22 and et2 > 22 and iso1 < 0.060 and met < 25 and btag1 < 0.62 and btag2 < 0.30):
+                return True
+
+    return False
+
+
 def emuSelection(cat, id1, id2, iso1, iso2, met, btag1, btag2, njets):
     #print cat, id1,id2,iso1,iso2,met,btag1,btag2, njets
     if (cat == 0):
-        if (id2 != 11):
-            return False
+
         if (id1 < 0.95):
             return False
         if (iso1 > 0.1):
