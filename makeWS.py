@@ -8,6 +8,9 @@ gcs = []
 # for the two charges for the expected
 symmetrizeCharges = True
 
+# whether to produce the charge separated objects or not
+makeAcpObjects = False
+
 class WSProducer:
     mass = ROOT.RooRealVar("CMS_emu_mass", "CMS_emu_mass", 180, 20, 200)
     workspace = ROOT.RooWorkspace("CMS_emu_workspace") 
