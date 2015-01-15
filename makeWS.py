@@ -1,4 +1,5 @@
 import ROOT
+import re
 
 # the garbage collection saver (to avoid python deleting ROOT objects which ROOT still uses internally)
 gcs = []
@@ -31,9 +32,37 @@ class WSProducer:
         self.lumi = lumi
 
     def prepareDataSets(self, cats, signals):
+        # signals is a dict of itype to a tuple (name, used_cross_section)
+
         # keep the number of categories
         self.numCategories = cats
         self.signalLabels = signals
+
+        # all production processes found
+        self.signalProcesses = set()
+
+        # all mass points found
+        self.signalMasses = set()
+
+        #----------
+        # find all mass points at which we have signal MC
+        #----------
+        for value in self.signalLabels.values():
+            # e.g. "Hem_ggh_120"
+            name = value[0]
+            mo = re.match("Hem_(\S+)_(\S+)$", name)
+            assert mo, "unexpected signal process name " + name
+
+            self.signalProcesses.add(mo.group(1))
+            self.signalMasses.add(int(mo.group(2)))
+
+        # convert to a list
+        self.signalMasses = sorted(list(self.signalMasses))
+
+        # mass hypothesis variable
+        self.mhypVar = ROOT.RooRealVar("mh","mass hypothesis", min(self.signalMasses), max(self.signalMasses))
+
+        #----------            
 
         for i in xrange(cats):
             for s in self.signalLabels:
