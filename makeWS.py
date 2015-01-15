@@ -80,17 +80,26 @@ class WSProducer:
         # all mass points found
         self.signalMasses = set()
 
+        # maps from itype to mass hypothesis and signal process
+        self.itypeToMassAndProc = {}
+        
         #----------
         # find all mass points at which we have signal MC
         #----------
-        for value in self.signalLabels.values():
+        for itype, value in self.signalLabels.items():
             # e.g. "Hem_ggh_120"
             name = value[0]
             mo = re.match("Hem_(\S+)_(\S+)$", name)
             assert mo, "unexpected signal process name " + name
 
-            self.signalProcesses.add(mo.group(1))
-            self.signalMasses.add(int(mo.group(2)))
+            proc = mo.group(1)
+            mass = int(mo.group(2))
+
+            self.signalProcesses.add(proc)
+            self.signalMasses.add(mass)
+
+            self.itypeToMassAndProc[itype] = dict(mass = mass, proc = proc)
+
 
         # convert to a list
         self.signalMasses = sorted(list(self.signalMasses))
