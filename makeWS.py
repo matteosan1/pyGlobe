@@ -195,4 +195,59 @@ class WSProducer:
 
                 self.datahists[name].add(self.set, weight * weightFactor)
 
-    #----------------------------------------            
+    #----------------------------------------
+
+    def makeSignalPdfsForFit(self):
+        # produces sum of Gaussian PDFs for fitting (i.e. without interpolation, independent
+        # at each mass point)
+
+        # assume we have all signal processes at all signal mass points
+
+        numGaussians = 2
+
+        for cat in range(self.numCategories):
+            catname = "cat%d" % cat
+
+            for proc in self.signalProcesses:
+
+                suffix = "_".join([
+                    proc,
+                    catname,
+                    ])
+
+                # self.signalMasses is ordered
+                for massIndex, mass in enumerate(self.signalMasses):
+
+                    # create the delta mu and sigma vars
+                    dmuvars = [ ROOT.RooRealVar(("dmu_g%d_m%d_" % (gaussIndex, mass)) + suffix,
+                                                "delta mu",
+                                                0,
+                                                -10,
+                                                +10)
+                                for gaussIndex in range(numGaussians)]
+                    sigmavars = [ ROOT.RooRealVar(("sigma_g%d_m%d_" % (gaussIndex, mass)) + suffix,
+                                                "delta mu",
+                                                0,
+                                                0.001,
+                                                10)
+                                for gaussIndex in range(numGaussians)]
+
+                    fractionvars = [ ROOT.RooRealVar(("frac_g%d_m%d_" % (gaussIndex, mass)) + suffix,
+                                                "fraction variable for Gaussian sum",
+                                                0.5,
+                                                0,
+                                                     1)
+                                     for gaussIndex in range(numGaussians - 1)]
+                    
+                    pdf = makeSumOfGaussians("sigpdf_" + suffix,
+                                             self.mass,
+                                             self.mhypVar,
+                                             dmuvars,
+                                             sigmavars,
+                                             fractionvars)
+                                             
+                    # import into workspace
+                    self.imp(pdf, True)
+                # end of loop over masses
+            # end of loop over signal processes
+        # end of loop over categories
