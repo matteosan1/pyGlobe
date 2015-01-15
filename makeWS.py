@@ -30,7 +30,7 @@ def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fr
                                      ROOT.RooArgList(mhypVar, deltaMuVars[i]))
         gcs.append(meanVar)
 
-        pdf = ROOT.RooGaussian(pdfName + "_g%d", "Gaussian %d" % i,
+        pdf = ROOT.RooGaussian(pdfName + "_g%d" % i, "Gaussian %d" % i,
                                recoMassVar,
                                meanVar,
                                sigmaVars[i])
