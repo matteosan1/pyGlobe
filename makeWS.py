@@ -230,13 +230,14 @@ class WSProducer:
 
             for proc in self.signalProcesses:
 
-                suffix = "_".join([
-                    proc,
-                    catname,
-                    ])
-
                 # self.signalMasses is ordered
                 for massIndex, mass in enumerate(self.signalMasses):
+                    suffix = "_".join([
+                        proc,
+                        catname,
+                        str(mass),
+                        ])
+                    
 
                     # create the delta mu and sigma vars
                     dmuvars = [ ROOT.RooRealVar(("dmu_g%d_m%d_" % (gaussIndex, mass)) + suffix,
