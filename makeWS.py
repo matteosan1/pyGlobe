@@ -57,22 +57,31 @@ class WSProducer:
         self.datahists[name] = ROOT.RooDataHist(name, name, self.set, "weight")
 
     #----------------------------------------
+
+    def imp(self, obj, recycle = False):
+        # helper function to import objects into the output workspace
+        if recycle:
+            getattr(self.workspace,'import')(obj, ROOT.RooFit.RecycleConflictNodes())
+        else:
+            getattr(self.workspace,'import')(obj)
+
+    #----------------------------------------
         
     def saveWS(self):
         for s in self.signalLabels:
             self.usedXsectBRVar = ROOT.RooConstVar("usedXsectBR_"+self.signalLabels[s][0], "cross section *BR used to produce the initial workspace", self.signalLabels[s][1])
-            getattr(self.workspace, 'import')(self.usedXsectBRVar, ROOT.RooFit.RecycleConflictNodes())
+            self.imp(self.usedXsectBRVar, True)
         
-        getattr(self.workspace, 'import')(self.mass)
+        self.imp(self.mass)
 
         self.lumiVar = ROOT.RooConstVar("lumi", "Integrated luminosity", self.lumi)
-        getattr(self.workspace, 'import')(self.lumiVar, ROOT.RooFit.RecycleConflictNodes())
+        self.imp(self.lumiVar, True)
 
         for d in self.datasets.values():
-            getattr(self.workspace, 'import')(d)
+            self.imp(d)
 
         for h in self.datahists.values():
-            getattr(self.workspace, 'import')(h)
+            self.imp(h)
 
         self.workspace.writeToFile("workspace.root")
 
