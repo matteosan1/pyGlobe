@@ -131,6 +131,19 @@ def setVariableRange(fitparams,
 #----------------------------------------------------------------------
 # script for fitting the signal models
 
+ARGV = sys.argv[1:]
+
+if ARGV:
+    # assume this is the name of a fit parameter settings file in python format
+    import imp
+    configFname = ARGV.pop(0)
+    parametersModule = imp.load_source('parameters', configFname)
+
+    fitparams = parametersModule.params
+else:
+    fitparams = {}
+
+
 import ROOT; gcs = []
 
 fin = ROOT.TFile(inputFname)
@@ -171,6 +184,34 @@ for cat in allCats:
             # e.g. sigpdf_vbf_115_cat8
             pdf = getObj(ws, "sigpdf_%s_%d_%s" % (proc, mass, cat))
 
+            #----------
+            # adjust fit parameters if specified
+            #----------
+
+            sigmaVars = getGaussianVars(ws, "sigma", proc, mass, cat)
+            dmuVars   = getGaussianVars(ws, "dmu", proc, mass, cat)
+
+            numGaussians = len(sigmaVars)
+            assert numGaussians == len(dmuVars)
+
+            for varname, vars in (("sigma", sigmaVars),
+                                  ("dmu",   dmuVars)):
+                for gaussianIndex in range(numGaussians):
+
+                    # set the variable range and initial value of this variable
+                    setVariableRange(fitparams,
+                                     varname + "%d" % gaussianIndex,
+                                     vars[gaussianIndex],
+                                     proc,
+                                     mass,
+                                     cat)
+                # end of loop over Gaussian components
+            # end of loop over variables
+
+            #----------
+            # perform the fit
+            #----------
+
             pdf.fitTo(dataset,
                       ROOT.RooFit.Range(mass - 5, mass + 5),
                       )
@@ -190,11 +231,6 @@ for cat in allCats:
             # fix the fitted parameters and read the fitted values
             #----------
 
-            sigmaVars = getGaussianVars(ws, "sigma", proc, mass, cat)
-            dmuVars   = getGaussianVars(ws, "dmu", proc, mass, cat)
-
-            numGaussians = len(sigmaVars)
-            assert numGaussians == len(dmuVars)
 
             # TODO: sort the Gaussian components, e.g. according to the width
 
