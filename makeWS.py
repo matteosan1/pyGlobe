@@ -153,6 +153,15 @@ class WSProducer:
             getattr(self.workspace,'import')(obj)
 
     #----------------------------------------
+
+    def _makeRooCategory(self, varname, values):
+        var = ROOT.RooCategory(varname, varname)
+        for value in values:
+            var.defineType(str(value))
+
+        self.imp(var)
+
+    #----------------------------------------
         
     def saveWS(self):
         for s in self.signalLabels:
@@ -169,6 +178,17 @@ class WSProducer:
 
         for h in self.datahists.values():
             self.imp(h)
+
+        #----------
+        # create RooCategories with signal masses, signal processes and categories
+        # so we don't have to guess them in other programs such as
+        # the signal fit
+        #----------
+        self._makeRooCategory("allCategories", [ "cat%d" % cat for cat in range(self.numCategories) ])
+        self._makeRooCategory("allSigProcesses", sorted(self.signalProcesses))
+        self._makeRooCategory("allSigMasses", sorted(self.signalMasses))
+
+        #----------
 
         self.workspace.writeToFile("workspace.root")
 
