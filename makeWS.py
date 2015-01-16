@@ -271,20 +271,20 @@ class WSProducer:
                     
 
                     # create the delta mu and sigma vars
-                    dmuvars = [ ROOT.RooRealVar(utils.makeGaussianVarname("dmu", proc, mhyp, cat, gaussIndex),
+                    dmuvars = [ ROOT.RooRealVar(utils.makeGaussianVarname("dmu", proc, mhyp, catname, gaussIndex),
                                                 "delta mu",
                                                 0,
                                                 -10,
                                                 +10)
                                 for gaussIndex in range(numGaussians)]
-                    sigmavars = [ ROOT.RooRealVar(utils.makeGaussianVarname("sigma", proc, mhyp, cat, gaussIndex),
+                    sigmavars = [ ROOT.RooRealVar(utils.makeGaussianVarname("sigma", proc, mhyp, catname, gaussIndex),
                                                 "sigma",
                                                 1,
                                                 0.01,
                                                 10)
                                 for gaussIndex in range(numGaussians)]
 
-                    fractionvars = [ ROOT.RooRealVar(utils.makeGaussianVarname("frac", proc, mhyp, cat, gaussIndex),
+                    fractionvars = [ ROOT.RooRealVar(utils.makeGaussianVarname("frac", proc, mhyp, catname, gaussIndex),
                                                      "fraction variable for Gaussian sum",
                                                      0.5,
                                                      0,
