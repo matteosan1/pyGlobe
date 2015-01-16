@@ -2,6 +2,8 @@
 
 import sys
 
+import utils
+
 #----------------------------------------------------------------------
 
 inputFname = "workspace.root"
@@ -38,6 +40,28 @@ def getCatEntries(catvar):
         retval.append(catvar.getLabel())
 
     catvar.setIndex(oldIndex)
+
+    return retval
+
+#----------------------------------------------------------------------
+
+def getGaussianVars(ws, varname, proc, mass, catname):
+    import itertools
+
+    retval = []
+
+    for gaussIndex in itertools.count():
+        name = utils.makeGaussianVarname("sigma",
+                                         proc,
+                                         mass,
+                                         catname,
+                                         gaussIndex)
+
+        obj = ws.obj(name)
+        if obj == None:
+            break
+        
+        retval.append(obj)
 
     return retval
 
@@ -93,11 +117,26 @@ for cat in allCats:
                 pdf.plotOn(frame,
                            # ROOT.RooFit.Range(110,160)
                            )
+
+
+            #----------
+            # fix the fitted parameters
+            #----------
+
+            sigmaVars = getGaussianVars(ws, "sigma", proc, mass, cat)
+            dmuVars   = getGaussianVars(ws, "dmu", proc, mass, cat)
+
+            for var in sigmaVars + dmuVars:
+                var.setConstant(True)
+
+            #----------
+
         # end of loop over masses
-                
         frame.Draw()
 
     # end of loop over signal processes
 
 # end of loop over categories
                              
+# write the fitted workspace out
+ws.writeToFile(outputFname)
