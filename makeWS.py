@@ -1,6 +1,8 @@
 import ROOT
 import re
 
+import utils
+
 # the garbage collection saver (to avoid python deleting ROOT objects which ROOT still uses internally)
 gcs = []
 
@@ -269,23 +271,23 @@ class WSProducer:
                     
 
                     # create the delta mu and sigma vars
-                    dmuvars = [ ROOT.RooRealVar(("dmu_g%d_m%d_" % (gaussIndex, mhyp)) + suffix,
+                    dmuvars = [ ROOT.RooRealVar(utils.makeGaussianVarname("dmu", proc, mhyp, cat, gaussIndex),
                                                 "delta mu",
                                                 0,
                                                 -10,
                                                 +10)
                                 for gaussIndex in range(numGaussians)]
-                    sigmavars = [ ROOT.RooRealVar(("sigma_g%d_m%d_" % (gaussIndex, mhyp)) + suffix,
-                                                "delta mu",
+                    sigmavars = [ ROOT.RooRealVar(utils.makeGaussianVarname("sigma", proc, mhyp, cat, gaussIndex),
+                                                "sigma",
                                                 1,
-                                                0.001,
+                                                0.01,
                                                 10)
                                 for gaussIndex in range(numGaussians)]
 
-                    fractionvars = [ ROOT.RooRealVar(("frac_g%d_m%d_" % (gaussIndex, mhyp)) + suffix,
-                                                "fraction variable for Gaussian sum",
-                                                0.5,
-                                                0,
+                    fractionvars = [ ROOT.RooRealVar(utils.makeGaussianVarname("frac", proc, mhyp, cat, gaussIndex),
+                                                     "fraction variable for Gaussian sum",
+                                                     0.5,
+                                                     0,
                                                      1)
                                      for gaussIndex in range(numGaussians - 1)]
                     
