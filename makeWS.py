@@ -239,29 +239,29 @@ class WSProducer:
             for proc in self.signalProcesses:
 
                 # self.signalMasses is ordered
-                for massIndex, mass in enumerate(self.signalMasses):
+                for massIndex, mhyp in enumerate(self.signalMasses):
                     suffix = "_".join([
                         proc,
+                        str(mhyp),
                         catname,
-                        str(mass),
                         ])
                     
 
                     # create the delta mu and sigma vars
-                    dmuvars = [ ROOT.RooRealVar(("dmu_g%d_m%d_" % (gaussIndex, mass)) + suffix,
+                    dmuvars = [ ROOT.RooRealVar(("dmu_g%d_m%d_" % (gaussIndex, mhyp)) + suffix,
                                                 "delta mu",
                                                 0,
                                                 -10,
                                                 +10)
                                 for gaussIndex in range(numGaussians)]
-                    sigmavars = [ ROOT.RooRealVar(("sigma_g%d_m%d_" % (gaussIndex, mass)) + suffix,
+                    sigmavars = [ ROOT.RooRealVar(("sigma_g%d_m%d_" % (gaussIndex, mhyp)) + suffix,
                                                 "delta mu",
                                                 1,
                                                 0.001,
                                                 10)
                                 for gaussIndex in range(numGaussians)]
 
-                    fractionvars = [ ROOT.RooRealVar(("frac_g%d_m%d_" % (gaussIndex, mass)) + suffix,
+                    fractionvars = [ ROOT.RooRealVar(("frac_g%d_m%d_" % (gaussIndex, mhyp)) + suffix,
                                                 "fraction variable for Gaussian sum",
                                                 0.5,
                                                 0,
