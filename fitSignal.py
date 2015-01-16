@@ -65,6 +65,67 @@ def getGaussianVars(ws, varname, proc, mass, catname):
 
     return retval
 
+
+#----------------------------------------------------------------------
+
+def getFitParam(fitparams, paramName, proc, mass, catname, defaultValue):
+    if fitparams == None:
+        return defaultValue
+
+    if not fitparams.has_key(catname):
+        return defaultValue
+
+    tmp = fitparams[catname]
+
+    if not tmp.has_key(proc):
+        return defaultValue
+
+    tmp = tmp[proc]
+
+    if not tmp.has_key(mass):
+        return defaultValue
+
+    tmp = tmp[mass]
+
+
+    return tmp.get(paramName, defaultValue)
+
+
+#----------------------------------------------------------------------
+
+def setVariableRange(fitparams,
+                     paramPrefix,
+                     var,
+                     proc,
+                     mass,
+                     cat
+                     ):
+    # sets the range and initial value of a RooRealVar from the values
+    # specified in the parameters
+
+    # get the parameters
+
+    minVal     = getFitParam(fitparams, paramPrefix + "_min", proc, mass, cat, None)
+    maxVal     = getFitParam(fitparams, paramPrefix + "_max", proc, mass, cat, None)
+    initialVal = getFitParam(fitparams, paramPrefix + "_initial", proc, mass, cat, None)
+
+    print "PPP",var.GetName(),minVal,maxVal,initialVal
+
+    if minVal != None and maxVal != None:
+        # set the range
+        var.setRange(minVal,maxVal)
+    elif minVal != None:
+        var.setMin(minVal)
+    elif maxVal != None:
+        var.setMax(maxVal)
+
+    if initialVal != None:
+        var.setVal(initialVal)
+
+    # if maxVal != None:
+    #     var.Print()
+    #     sys.exit(1)
+
 #----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
