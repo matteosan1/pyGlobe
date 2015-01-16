@@ -33,7 +33,8 @@ def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fr
             expr = "@0 + @1"
             args = ROOT.RooArgList(mhypVar, deltaMuVars[i])
 
-        meanVar = ROOT.RooFormulaVar(pdfName + "_mu", "mean Gaussian %d" % i,
+        meanVar = ROOT.RooFormulaVar(("mu_g%d_" % i) + pdfName,
+                                     "mean Gaussian %d" % i,
                                      expr,
                                      args)
         gcs.append(meanVar)
