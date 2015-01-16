@@ -16,6 +16,7 @@ makeAcpObjects = False
 #----------------------------------------------------------------------
 
 def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fractionVars):
+    # mhypVar can be a float or int or a RooAbsReal
 
     numGaussians = len(deltaMuVars)
     assert numGaussians == len(sigmaVars)
@@ -25,9 +26,16 @@ def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fr
 
     for i in range(numGaussians):
         # massHypothesis + deltaM
+        if isinstance(mhypVar, int) or isinstance(mhypVar, float):
+            expr = "%f + @0" % mhypVar
+            args = ROOT.RooArgList(deltaMuVars[i])
+        else:
+            expr = "@0 + @1"
+            args = ROOT.RooArgList(mhypVar, deltaMuVars[i])
+
         meanVar = ROOT.RooFormulaVar(pdfName + "_mu", "mean Gaussian %d" % i,
-                                     "@0 + @1",
-                                     ROOT.RooArgList(mhypVar, deltaMuVars[i]))
+                                     expr,
+                                     args)
         gcs.append(meanVar)
 
         pdf = ROOT.RooGaussian(pdfName + "_g%d" % i, "Gaussian %d" % i,
