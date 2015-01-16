@@ -213,7 +213,8 @@ for cat in allCats:
             #----------
 
             pdf.fitTo(dataset,
-                      ROOT.RooFit.Range(mass - 5, mass + 5),
+                      ROOT.RooFit.Range(mass + getFitParam(fitparams, "fitRangeLeft",  proc, mass, cat, - 5),
+                                        mass + getFitParam(fitparams, "fitRangeRight", proc, mass, cat, +5)),
                       )
 
             if True:
