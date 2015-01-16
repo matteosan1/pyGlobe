@@ -60,7 +60,9 @@ def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fr
 #----------------------------------------------------------------------
 
 class WSProducer:
-    mass = ROOT.RooRealVar("CMS_emu_mass", "CMS_emu_mass", 180, 20, 200)
+    mass = ROOT.RooRealVar("CMS_emu_mass", "m_{e#mu}", 180, 20, 200)
+    mass.setUnit("GeV/c^{2}")
+    
     workspace = ROOT.RooWorkspace("CMS_emu_workspace") 
     datasets  = {}
     datahists = {}
