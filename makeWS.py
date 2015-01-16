@@ -270,7 +270,7 @@ class WSProducer:
                     
                     pdf = makeSumOfGaussians("sigpdf_" + suffix,
                                              self.mass,
-                                             self.mhypVar,
+                                             mhyp,
                                              dmuvars,
                                              sigmavars,
                                              fractionvars)
