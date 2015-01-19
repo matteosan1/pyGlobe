@@ -85,3 +85,33 @@ def makePiecewiseLinearFunction(funcName, xvar, xvalues, yvalues):
 
 
 #----------------------------------------------------------------------
+
+def getObj(ws, name):
+
+    retval = ws.obj(name)
+
+    if retval == None:
+        print >> sys.stderr,"could not get object '%s' from workspace '%s', exiting" % (name, ws.GetName())
+        sys.exit(1)
+
+    return retval
+
+#----------------------------------------------------------------------
+
+def getCatEntries(catvar):
+    # catvar should e.g. be a RooCategory object
+
+    retval = []
+
+    oldIndex = catvar.getIndex()
+
+    for index in range(catvar.numTypes()):
+        catvar.setIndex(index)
+        retval.append(catvar.getLabel())
+
+    catvar.setIndex(oldIndex)
+
+    return retval
+
+#----------------------------------------------------------------------
+

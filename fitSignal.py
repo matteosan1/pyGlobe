@@ -16,35 +16,6 @@ massVarName = "CMS_emu_mass"
 
 #----------------------------------------------------------------------
 
-def getObj(ws, name):
-
-    retval = ws.obj(name)
-
-    if retval == None:
-        print >> sys.stderr,"could not get object '%s' from workspace '%s', exiting" % (name, ws.GetName())
-        sys.exit(1)
-
-    return retval
-
-#----------------------------------------------------------------------
-
-def getCatEntries(catvar):
-    # catvar should e.g. be a RooCategory object
-
-    retval = []
-
-    oldIndex = catvar.getIndex()
-
-    for index in range(catvar.numTypes()):
-        catvar.setIndex(index)
-        retval.append(catvar.getLabel())
-
-    catvar.setIndex(oldIndex)
-
-    return retval
-
-#----------------------------------------------------------------------
-
 def getGaussianVars(ws, varname, proc, mass, catname):
     import itertools
 
@@ -153,12 +124,12 @@ ws = fin.Get(wsname)
 
 assert ws != None, "could not find workspace '%s' in file '%s'" % (wsname, inputFname)
 
-massVar = getObj(ws, massVarName)
+massVar = utils.getObj(ws, massVarName)
 
 # get the list of all categories
-allCats = getCatEntries(getObj(ws, 'allCategories'))
-allMasses = [ int(x) for x in getCatEntries(getObj(ws, 'allSigMasses')) ]
-allProcs = getCatEntries(getObj(ws, 'allSigProcesses'))
+allCats   = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
+allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
+allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
 
 for cat in allCats:
     for proc in allProcs:
@@ -178,11 +149,11 @@ for cat in allCats:
 
             # get the signal MC dataset
             # e.g. sig_Hem_unbinned_ggh_115_cat7
-            dataset = getObj(ws, "sig_Hem_unbinned_%s_%d_%s" % (proc, mass, cat))
+            dataset = utils.getObj(ws, "sig_Hem_unbinned_%s_%d_%s" % (proc, mass, cat))
             
             # get the signal pdf
             # e.g. sigpdf_vbf_115_cat8
-            pdf = getObj(ws, "sigpdf_%s_%d_%s" % (proc, mass, cat))
+            pdf = utils.getObj(ws, "sigpdf_%s_%d_%s" % (proc, mass, cat))
 
             #----------
             # adjust fit parameters if specified
