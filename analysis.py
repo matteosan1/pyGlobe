@@ -94,7 +94,13 @@ class Analysis:
                 sys.stdout.flush()
 
             self.tree.GetEntry(z)
-            self.processPair()
+            try:
+                self.processPair()
+            except Exception, ex:
+                print "caught exception while processing event %d:" % z,ex
+                import traceback
+                print traceback.format_exc()
+                raise 
             
     def processPair(self):
         itype = self.tree.itype
