@@ -61,7 +61,23 @@ class Analysis:
         self.tree.SetBranchStatus("pairs", 1)
         self.tree.SetBranchStatus("mass",1)
         self.tree.SetBranchStatus("cat",1)
-        self.tree.SetBranchStatus("vbfcat",1)
+
+        if self.options.jesMode == None:
+            # nominal jet energy scale
+            self.tree.SetBranchStatus("vbfcat",1)
+            self.tree.SetBranchStatus("njets20",1)
+            self.tree.SetBranchStatus("btag", 1)
+        elif self.options.jesMode == 'up':
+            self.tree.SetBranchStatus("vbfcat_up",1)
+            self.tree.SetBranchStatus("njets20_up",1)
+            self.tree.SetBranchStatus("btag_up",1)
+        elif self.options.jesMode == 'down':
+            self.tree.SetBranchStatus("vbfcat_down",1)
+            self.tree.SetBranchStatus("njets20_down",1)
+            self.tree.SetBranchStatus("btag_down",1)
+        else:
+            raise Exception("unsupported jet energy scale mode " + self.options.jesMode)
+            
         self.tree.SetBranchStatus("sumpt", 1)
         self.tree.SetBranchStatus("ch1_1", 1)
         self.tree.SetBranchStatus("ch2_1", 1)
@@ -75,8 +91,6 @@ class Analysis:
         self.tree.SetBranchStatus("iso2", 1)
         self.tree.SetBranchStatus("met",1)
         self.tree.SetBranchStatus("njets30",1)
-        self.tree.SetBranchStatus("njets20",1)
-        self.tree.SetBranchStatus("btag", 1)
         self.tree.SetBranchStatus("et1", 1)
         self.tree.SetBranchStatus("et2", 1)
         self.tree.SetBranchStatus("eta1", 1)
@@ -109,7 +123,26 @@ class Analysis:
 
         pairs = self.tree.pairs
         cats = self.tree.cat
-        vbfcats = self.tree.vbfcat
+
+        # these two variables were also run
+        # with different jet energy scale
+        # (for systematics)
+        if self.options.jesMode == None:
+            # nominal jet energy scale
+            vbfcats = self.tree.vbfcat
+            njets20 = self.tree.njets20
+            btag    = self.tree.btag
+        elif self.options.jesMode == 'up':
+            vbfcats = self.tree.vbfcat_up
+            njets20 = self.tree.njets20_up
+            btag    = self.tree.btag_up
+        elif self.options.jesMode == 'down':
+            vbfcats = self.tree.vbfcat_down
+            njets20 = self.tree.njets20_down
+            btag    = self.tree.btag_down
+        else:
+            raise Exception("unsupported jet energy scale mode " + self.options.jesMode)
+        
         weight = self.tree.weight
         masses = self.tree.mass
         et1 = self.tree.et1
@@ -119,17 +152,18 @@ class Analysis:
         iso1 = self.tree.iso1
         iso2 = self.tree.iso2
         met = self.tree.met
-        njets20 = self.tree.njets20
+
         btag1 = -9999.
         btag2 = -9999.
         if (njets20 == 1):
-            btag1 = self.tree.btag[0]
+            btag1 = btag[0]
         if (njets20 > 1):
-            btag2 = self.tree.btag[1]
-        
+            btag2 = btag[1]
+
         p = getEMuPair(pairs, self.tree.sumpt)
         if (p == -1):
             return
+
 
         if (masses[p] > 20. and masses[p] < 200.):    
             if (emuSelectionV3SimplifiedN_1NJETS(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
