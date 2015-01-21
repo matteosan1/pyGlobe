@@ -118,6 +118,11 @@ class Analysis:
             
     def processPair(self):
         itype = self.tree.itype
+
+        if self.options.sigonly:
+            if itype >= 0:
+                return
+
         if (itype not in self.samples):
             return
 

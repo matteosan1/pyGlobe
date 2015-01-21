@@ -18,6 +18,7 @@ if __name__ == "__main__":
     parser.add_option("-m", "--mode", default="highestSumpt", help="Selection mode (highestSumpt, allPairs...)")
     parser.add_option("-d", "--debug", action="store_true", default=False, help="Activate profiling of the program.")
     parser.add_option("--jes", dest = "jesMode", choices = [ None, "up", "down"], default = None, help="run with shifted jet energy scale (for systematics)")
+    parser.add_option("--sigonly", default = False, action="store_true", help="run only over signal events (useful for speeding up testing)")
     (options, arg) = parser.parse_args()
         
     if (options.debug):
