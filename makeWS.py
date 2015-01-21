@@ -76,6 +76,10 @@ class WSProducer:
     signalLabels = dict()
 
     #----------------------------------------
+    def __init__(self, options):
+        self.options = options
+
+    #----------------------------------------
     
     def setGlobalParameters(self, lumi):
         self.lumi = lumi

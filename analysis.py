@@ -45,7 +45,7 @@ class Analysis:
         self.plotvariabletree = plotfromoptree.plotvariableTree(self.allHistos)
 
         self.signalSamples = plotfromoptree.getSignalSamples(self.samples)
-        self.wsProducer = WSProducer()
+        self.wsProducer = WSProducer(self.options)
         self.counter = table.table(2, 5)
         self.wsProducer.prepareDataSets(11, self.signalSamples)
         
