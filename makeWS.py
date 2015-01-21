@@ -62,6 +62,9 @@ def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fr
 class WSProducer:
     mass = ROOT.RooRealVar("CMS_emu_mass", "m_{e#mu}", 180, 20, 200)
     mass.setUnit("GeV/c^{2}")
+
+    # for filling weighted datsets (for signal)
+    weightVar = ROOT.RooRealVar("weight","weight",1)
     
     workspace = ROOT.RooWorkspace("CMS_emu_workspace") 
     datasets  = {}
@@ -72,6 +75,11 @@ class WSProducer:
 
     set = ROOT.RooArgSet("set")
     set.add(mass)
+
+    massWithWeight = ROOT.RooArgSet("massWithWeight")
+    massWithWeight.add(mass)
+    massWithWeight.add(weightVar)
+
     lumi = 0.
     signalLabels = dict()
 
@@ -120,7 +128,7 @@ class WSProducer:
             # add a dataset for signal MC
             assert not makeAcpObjects, "not yet implemented for charge separation"
             for cat in range(cats):
-                self.addDataSet("sig_Hem_unbinned_%s_%d_cat%d" % (proc, mass, cat))
+                self.addDataSet("sig_Hem_unbinned_%s_%d_cat%d" % (proc, mass, cat), True)
 
         # convert to a list
         self.signalMasses = sorted(list(self.signalMasses))
@@ -143,8 +151,11 @@ class WSProducer:
 
     #----------------------------------------
         
-    def addDataSet(self, name):
-        self.datasets[name] = ROOT.RooDataSet(name, name, self.set)
+    def addDataSet(self, name, weighted = False):
+        if weighted:
+            self.datasets[name] = ROOT.RooDataSet(name, name, self.massWithWeight, self.weightVar.GetName())
+        else:
+            self.datasets[name] = ROOT.RooDataSet(name, name, self.set)
 
     #----------------------------------------
 
@@ -204,6 +215,7 @@ class WSProducer:
 
     def fillDataset(self, itype, cat, mass, weight):
         self.mass.setVal(mass)
+        self.weightVar.setVal(weight)
 
         chargeStrs = [ "" ]
         weightFactors = [ 1 ] # mostly for symmetrizing the expected charge specific histograms
@@ -246,7 +258,8 @@ class WSProducer:
                     proc    = self.itypeToMassAndProc[itype]['proc']
 
                     # add also to signal datasets
-                    self.datasets["sig_Hem" + chargeStr + "_unbinned_%s_%d_cat%d" % (proc, massHyp, cat)].add(self.set, weight)
+                    self.weightVar.setVal(weight * weightFactor)
+                    self.datasets["sig_Hem" + chargeStr + "_unbinned_%s_%d_cat%d" % (proc, massHyp, cat)].add(self.massWithWeight, weight * weightFactor)
 
                     name = "sig_Hem" + chargeStr + "_%s_%d_cat%d" % (proc, massHyp, cat)
 
