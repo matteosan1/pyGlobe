@@ -198,7 +198,7 @@ class WSProducer:
 
         #----------
 
-        self.workspace.writeToFile("workspace.root")
+        self.workspace.writeToFile(self.options.wsoutFname)
 
     #----------------------------------------
 

@@ -11,6 +11,7 @@ if __name__ == "__main__":
     parser.add_option("-b", "--blind", default=False, action="store_true", help="Do not plot data")
     parser.add_option("-i", "--input", default="~/sslept_v3.root", help="Input filename")
     parser.add_option("-o", "--output", default="output_sslept.root", help="Output filename")
+    parser.add_option("--wsout", default="workspace.root", help="Output filename for workspace file", dest = "wsoutFname")
     parser.add_option("-I", "--inputfile", default="inputfiles.dat", help="Original inputfiles.dat")
     parser.add_option("-P", "--plotvariables", default="plotvariables.dat", help="Plot definition file")
     parser.add_option("-t", "--treename", default="opttree", help="Name of the tree to process")
