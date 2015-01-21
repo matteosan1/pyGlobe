@@ -16,6 +16,18 @@ massVarName = "CMS_emu_mass"
 
 #----------------------------------------------------------------------
 
+def saveAllCanvases(suffix = "png"):
+    import ROOT
+
+    canvases = ROOT.gROOT.GetListOfCanvases()
+    num = canvases.GetSize()
+
+    for i in range(num):
+        canv = canvases.At(i)
+        canv.SaveAs("plot-%02d.%s" % (i, suffix))
+
+#----------------------------------------------------------------------
+
 def getGaussianVars(ws, varname, proc, mass, catname):
     import itertools
 
@@ -258,3 +270,5 @@ for cat in allCats:
                              
 # write the fitted workspace out
 ws.writeToFile(outputFname)
+
+print "saveAllCanvases()"
