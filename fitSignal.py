@@ -12,6 +12,7 @@ outputFname = "workspace-sigfit.root"
 
 wsname = "CMS_emu_workspace"
 
+# name of reconstructed mass variable
 massVarName = "CMS_emu_mass"
 
 #----------------------------------------------------------------------
@@ -138,6 +139,7 @@ ws = fin.Get(wsname)
 
 assert ws != None, "could not find workspace '%s' in file '%s'" % (wsname, inputFname)
 
+# reconstructed mass variable
 massVar = utils.getObj(ws, massVarName)
 
 # get the list of all categories
