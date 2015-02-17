@@ -160,6 +160,7 @@ for cat in allCats:
         # second index is the mass point index
         sigmaValues = []
         dmuValues = []
+        fracValues = []
 
         for mass in allMasses:
 
@@ -176,14 +177,17 @@ for cat in allCats:
             #----------
 
             sigmaVars = getGaussianVars(ws, "sigma", proc, mass, cat)
-            dmuVars   = getGaussianVars(ws, "dmu", proc, mass, cat)
+            dmuVars   = getGaussianVars(ws, "dmu",   proc, mass, cat)
+            fracVars  = getGaussianVars(ws, "frac",  proc, mass, cat)
 
             numGaussians = len(sigmaVars)
             assert numGaussians == len(dmuVars)
+            assert numGaussians == len(fracVars) + 1
 
             for varname, vars in (("sigma", sigmaVars),
-                                  ("dmu",   dmuVars)):
-                for gaussianIndex in range(numGaussians):
+                                  ("dmu",   dmuVars),
+                                  ):
+                for gaussianIndex in range(len(vars)):
 
                     # set the variable range and initial value of this variable
                     setVariableRange(fitparams,
@@ -237,11 +241,15 @@ for cat in allCats:
             # TODO: sort the Gaussian components, e.g. according to the width
 
             for vars, values in ((sigmaVars, sigmaValues),
-                                 (dmuVars, dmuValues)):
+                                 (dmuVars, dmuValues),
+                                 (fracVars, fracValues),
+                                 ):
 
                 if len(values) == 0:
-                    values.extend([[ ] for i in range(numGaussians) ] )
+                    values.extend([[ ] for i in range(len(vars)) ] )
 
+                # freeze the fitted variables at the fit final values
+                # and add the values to a list for interpolation
                 for gaussIndex, var in enumerate(vars):
                     var.setConstant(True)
                     values[gaussIndex].append(var.getVal())
@@ -256,7 +264,8 @@ for cat in allCats:
         # produce the interpolating objects
         #----------
         for varname, values in (("sigma", sigmaValues),
-                              ("dmu", dmuValues)):
+                                ("dmu", dmuValues),
+                                ("frac", fracValues)):
 
             for gaussIndex in range(len(values)):
                 funcname = utils.makeGaussianVarname("interp_" + varname,
