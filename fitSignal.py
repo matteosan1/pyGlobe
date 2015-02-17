@@ -244,10 +244,28 @@ for cat in allCats:
             getattr(ws, 'import')(normVar)
 
             #----------
-            # fix the fitted parameters and read the fitted values
+            # sort the Gaussian components according to the width
             #----------
 
-            # TODO: sort the Gaussian components, e.g. according to the width
+            indices = sorted(range(numGaussians), key = lambda index: sigmaVars[index].getVal() )
+
+            # instead of reordering the objects, we re-assign the values
+            utils.reassignValues(indices, sigmaVars)
+            utils.reassignValues(indices, dmuVars)
+
+            # note that for the fractions (which are continued fractions),
+            # we must expand them, sort and then collapse again
+            # (the values will be different !)
+
+            expandedFracValues = utils.expandContinuedFraction([ x.getVal() for x in fracVars])
+            expandedFracValues = utils.reorder(indices, expandedFracValues)
+            unexpandedFracValues = utils.collapseContinuedFraction(expandedFracValues)
+            for value, var in zip(unexpandedFracValues, fracVars):
+                var.setVal(value)
+
+            #----------
+            # fix the fitted parameters and read the fitted values
+            #----------
 
             for vars, values in ((sigmaVars, sigmaValues),
                                  (dmuVars, dmuValues),
