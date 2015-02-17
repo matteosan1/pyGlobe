@@ -215,9 +215,22 @@ for cat in allCats:
 
 
             #----------
-            # fix the fitted parameters and read the fitted values
+            # normalization object
             #----------
 
+            sumWeights = dataset.sumEntries()
+            normVar = ROOT.RooRealVar(pdf.GetName() + "_norm",
+                                      pdf.GetName() + "_norm",
+                                      sumWeights,
+                                      0,
+                                      sumWeights); gcs.append(normVar)
+            normVar.setConstant(True)
+                                      
+            getattr(ws, 'import')(normVar)
+
+            #----------
+            # fix the fitted parameters and read the fitted values
+            #----------
 
             # TODO: sort the Gaussian components, e.g. according to the width
 
