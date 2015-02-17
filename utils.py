@@ -115,3 +115,44 @@ def getCatEntries(catvar):
 
 #----------------------------------------------------------------------
 
+def expandContinuedFraction(fvalues):
+    # 'expands' a continued fraction: given n values in the range 0..1
+    # returns n+1 values in the range 0..1 which sum to one
+
+    retval = []
+    accumulatedFactor = 1.0
+
+    for fval in fvalues:
+        retval.append(fval * accumulatedFactor)
+
+        accumulatedFactor *= (1 - fval)
+
+    retval.append(accumulatedFactor)
+
+    return retval
+
+#----------------------------------------------------------------------
+
+def collapseContinuedFraction(fvalues):
+    # 'de-expands' a continued fraction: given n values in the range 0..1
+    # which sum to 1, returns n-1 values in the range 0..1 which represent
+    # the same values as continued fraction. This is the counterpart to
+    # expandContinuedFraction(..)
+
+    assert len(fvalues) >= 1
+
+    retval = []
+    accumulatedFactor = 1.0
+
+    # we can ignore the last value, assuming it is
+    # the complement of the sum of the previous values
+    # to one
+
+    for fval in fvalues[:-1]:
+        retval.append(fval / accumulatedFactor)
+
+        accumulatedFactor *= (1 - retval[-1])
+
+    return retval
+
+#----------------------------------------------------------------------
