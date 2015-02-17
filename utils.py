@@ -156,3 +156,22 @@ def collapseContinuedFraction(fvalues):
     return retval
 
 #----------------------------------------------------------------------
+
+def reorder(indices, objects):
+
+    assert len(indices) == len(objects)
+
+    return [ objects[i] for i in indices ]
+
+
+#----------------------------------------------------------------------
+
+def reassignValues(indices, rooRealVars):
+    # assume that all objects have the same range
+
+    values = reorder(indices, [ x.getVal() for x in rooRealVars ])
+
+    for var, value in zip(rooRealVars,values):
+        var.setVal(value)
+
+#----------------------------------------------------------------------
