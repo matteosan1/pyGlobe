@@ -128,6 +128,8 @@ else:
 
 
 import ROOT; gcs = []
+ROOT.gROOT.SetBatch(1)
+
 
 fin = ROOT.TFile(inputFname)
 assert fin.IsOpen(), "could not open input workspace file " + inputFname
