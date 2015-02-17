@@ -15,6 +15,9 @@ wsname = "CMS_emu_workspace"
 # name of reconstructed mass variable
 massVarName = "CMS_emu_mass"
 
+# name of Higgs mass hypothesis variable (created by this script)
+massHypName = "MH"
+
 #----------------------------------------------------------------------
 
 def saveAllCanvases(suffix = "png"):
@@ -141,6 +144,12 @@ assert ws != None, "could not find workspace '%s' in file '%s'" % (wsname, input
 
 # reconstructed mass variable
 massVar = utils.getObj(ws, massVarName)
+
+mhypVar = ROOT.RooRealVar(massHypName, "Higgs mass hypothesis variable",
+                          massVar.getVal(),
+                          massVar.getMin(),
+                          massVar.getMax())
+
 
 # get the list of all categories
 allCats   = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
@@ -277,7 +286,7 @@ for cat in allCats:
 
                 print "ZZ",values[gaussIndex]
                 func = utils.makePiecewiseLinearFunction(funcname,
-                                                         massVar,
+                                                         mhypVar,
                                                          allMasses,
                                                          values[gaussIndex])
 
