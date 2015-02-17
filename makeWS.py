@@ -60,7 +60,7 @@ def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fr
 #----------------------------------------------------------------------
 
 class WSProducer:
-    mass = ROOT.RooRealVar("CMS_emu_mass", "m_{e#mu}", 180, 20, 200)
+    mass = ROOT.RooRealVar("CMS_emu_mass", "m_{e#mu}", 140, 110, 160)
     mass.setUnit("GeV/c^{2}")
 
     # for filling weighted datsets (for signal)
@@ -214,6 +214,14 @@ class WSProducer:
     #----------------------------------------
 
     def fillDataset(self, itype, cat, mass, weight):
+
+        # the underflow/overflow behaviour seems to be
+        # such that in the dataset we get e.g. lots
+        # of entries in the dataset at the lower and
+        # higher end of the variable range...
+        if mass < self.mass.getMin() or mass >= self.mass.getMax():
+            return
+
         self.mass.setVal(mass)
         self.weightVar.setVal(weight)
 
