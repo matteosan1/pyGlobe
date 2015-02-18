@@ -21,6 +21,8 @@ massHypName = "MH"
 #----------------------------------------------------------------------
 
 def getGaussianVars(ws, varname, proc, mass, catname):
+    # searches parameter variables of the Gaussians
+    # in the workspace
     import itertools
 
     retval = []
