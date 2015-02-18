@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# garbage collection saver
+gcs = []
+
 #----------------------------------------------------------------------
 def makeGaussianVarname(varname, proc, mhyp, catname, gaussIndex):
     # produces a variable name related to a Gaussian pdf
@@ -173,5 +176,49 @@ def reassignValues(indices, rooRealVars):
 
     for var, value in zip(rooRealVars,values):
         var.setVal(value)
+
+#----------------------------------------------------------------------
+
+def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fractionVars):
+    # mhypVar can be a float or int or a RooAbsReal
+
+    import ROOT
+
+    numGaussians = len(deltaMuVars)
+    assert numGaussians == len(sigmaVars)
+    assert len(fractionVars) == numGaussians - 1
+
+    pdfs = ROOT.RooArgList()
+
+    for i in range(numGaussians):
+        # massHypothesis + deltaM
+        if isinstance(mhypVar, int) or isinstance(mhypVar, float):
+            expr = "%f + @0" % mhypVar
+            args = ROOT.RooArgList(deltaMuVars[i])
+        else:
+            expr = "@0 + @1"
+            args = ROOT.RooArgList(mhypVar, deltaMuVars[i])
+
+        meanVar = ROOT.RooFormulaVar(("mu_g%d_" % i) + pdfName,
+                                     "mean Gaussian %d" % i,
+                                     expr,
+                                     args)
+        gcs.append(meanVar)
+
+        pdf = ROOT.RooGaussian(pdfName + "_g%d" % i, "Gaussian %d" % i,
+                               recoMassVar,
+                               meanVar,
+                               sigmaVars[i])
+        gcs.append(pdf)
+
+        pdfs.add(pdf)
+
+
+    # build the sum
+    coeffs = ROOT.RooArgList()
+    for fractionVar in fractionVars:
+        coeffs.add(fractionVar)
+
+    return ROOT.RooAddPdf(pdfName, pdfName, pdfs, coeffs, True)
 
 #----------------------------------------------------------------------
