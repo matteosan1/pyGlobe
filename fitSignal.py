@@ -147,11 +147,6 @@ allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
 for cat in allCats:
     for proc in allProcs:
 
-        # produce one frame with all the mass hypotheses
-        frame = massVar.frame(110,160)
-        frame.SetTitle("%s %s" % (cat, proc))
-        gcs.append(ROOT.TCanvas())
-
         # fitted values for this category and signal process
         # first index is the Gaussian component number
         # second index is the mass point index
@@ -206,17 +201,6 @@ for cat in allCats:
                       ROOT.RooFit.Range(mass + getFitParam(fitparams, "fitRangeLeft",  proc, mass, cat, - 5),
                                         mass + getFitParam(fitparams, "fitRangeRight", proc, mass, cat, +5)),
                       )
-
-            if True:
-                # add to the plot
-
-                dataset.plotOn(frame,
-                               # ROOT.RooFit.Range(110,160)
-                               )
-                pdf.plotOn(frame,
-                           # ROOT.RooFit.Range(110,160)
-                           )
-
 
             #----------
             # normalization object
@@ -276,7 +260,6 @@ for cat in allCats:
 
 
         # end of loop over masses
-        frame.Draw()
 
         #----------
         # produce the interpolating objects
