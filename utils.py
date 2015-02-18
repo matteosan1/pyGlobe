@@ -222,3 +222,15 @@ def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fr
     return ROOT.RooAddPdf(pdfName, pdfName, pdfs, coeffs, True)
 
 #----------------------------------------------------------------------
+
+def saveAllCanvases(suffix = "png"):
+    import ROOT
+
+    canvases = ROOT.gROOT.GetListOfCanvases()
+    num = canvases.GetSize()
+
+    for i in range(num):
+        canv = canvases.At(i)
+        canv.SaveAs("plot-%02d.%s" % (i, suffix))
+
+#----------------------------------------------------------------------
