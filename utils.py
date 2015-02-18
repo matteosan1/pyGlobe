@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# garbage collection saver
+gcs = []
+
 #----------------------------------------------------------------------
 def makeGaussianVarname(varname, proc, mhyp, catname, gaussIndex):
     # produces a variable name related to a Gaussian pdf
@@ -115,3 +118,107 @@ def getCatEntries(catvar):
 
 #----------------------------------------------------------------------
 
+def expandContinuedFraction(fvalues):
+    # 'expands' a continued fraction: given n values in the range 0..1
+    # returns n+1 values in the range 0..1 which sum to one
+
+    retval = []
+    accumulatedFactor = 1.0
+
+    for fval in fvalues:
+        retval.append(fval * accumulatedFactor)
+
+        accumulatedFactor *= (1 - fval)
+
+    retval.append(accumulatedFactor)
+
+    return retval
+
+#----------------------------------------------------------------------
+
+def collapseContinuedFraction(fvalues):
+    # 'de-expands' a continued fraction: given n values in the range 0..1
+    # which sum to 1, returns n-1 values in the range 0..1 which represent
+    # the same values as continued fraction. This is the counterpart to
+    # expandContinuedFraction(..)
+
+    assert len(fvalues) >= 1
+
+    retval = []
+    accumulatedFactor = 1.0
+
+    # we can ignore the last value, assuming it is
+    # the complement of the sum of the previous values
+    # to one
+
+    for fval in fvalues[:-1]:
+        retval.append(fval / accumulatedFactor)
+
+        accumulatedFactor *= (1 - retval[-1])
+
+    return retval
+
+#----------------------------------------------------------------------
+
+def reorder(indices, objects):
+
+    assert len(indices) == len(objects)
+
+    return [ objects[i] for i in indices ]
+
+
+#----------------------------------------------------------------------
+
+def reassignValues(indices, rooRealVars):
+    # assume that all objects have the same range
+
+    values = reorder(indices, [ x.getVal() for x in rooRealVars ])
+
+    for var, value in zip(rooRealVars,values):
+        var.setVal(value)
+
+#----------------------------------------------------------------------
+
+def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fractionVars):
+    # mhypVar can be a float or int or a RooAbsReal
+
+    import ROOT
+
+    numGaussians = len(deltaMuVars)
+    assert numGaussians == len(sigmaVars)
+    assert len(fractionVars) == numGaussians - 1
+
+    pdfs = ROOT.RooArgList()
+
+    for i in range(numGaussians):
+        # massHypothesis + deltaM
+        if isinstance(mhypVar, int) or isinstance(mhypVar, float):
+            expr = "%f + @0" % mhypVar
+            args = ROOT.RooArgList(deltaMuVars[i])
+        else:
+            expr = "@0 + @1"
+            args = ROOT.RooArgList(mhypVar, deltaMuVars[i])
+
+        meanVar = ROOT.RooFormulaVar(("mu_g%d_" % i) + pdfName,
+                                     "mean Gaussian %d" % i,
+                                     expr,
+                                     args)
+        gcs.append(meanVar)
+
+        pdf = ROOT.RooGaussian(pdfName + "_g%d" % i, "Gaussian %d" % i,
+                               recoMassVar,
+                               meanVar,
+                               sigmaVars[i])
+        gcs.append(pdf)
+
+        pdfs.add(pdf)
+
+
+    # build the sum
+    coeffs = ROOT.RooArgList()
+    for fractionVar in fractionVars:
+        coeffs.add(fractionVar)
+
+    return ROOT.RooAddPdf(pdfName, pdfName, pdfs, coeffs, True)
+
+#----------------------------------------------------------------------

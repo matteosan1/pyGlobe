@@ -17,50 +17,8 @@ makeAcpObjects = False
 
 #----------------------------------------------------------------------
 
-def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fractionVars):
-    # mhypVar can be a float or int or a RooAbsReal
-
-    numGaussians = len(deltaMuVars)
-    assert numGaussians == len(sigmaVars)
-    assert len(fractionVars) == numGaussians - 1
-
-    pdfs = ROOT.RooArgList()
-
-    for i in range(numGaussians):
-        # massHypothesis + deltaM
-        if isinstance(mhypVar, int) or isinstance(mhypVar, float):
-            expr = "%f + @0" % mhypVar
-            args = ROOT.RooArgList(deltaMuVars[i])
-        else:
-            expr = "@0 + @1"
-            args = ROOT.RooArgList(mhypVar, deltaMuVars[i])
-
-        meanVar = ROOT.RooFormulaVar(("mu_g%d_" % i) + pdfName,
-                                     "mean Gaussian %d" % i,
-                                     expr,
-                                     args)
-        gcs.append(meanVar)
-
-        pdf = ROOT.RooGaussian(pdfName + "_g%d" % i, "Gaussian %d" % i,
-                               recoMassVar,
-                               meanVar,
-                               sigmaVars[i])
-        gcs.append(pdf)
-
-        pdfs.add(pdf)
-
-
-    # build the sum
-    coeffs = ROOT.RooArgList()
-    for fractionVar in fractionVars:
-        coeffs.add(fractionVar)
-
-    return ROOT.RooAddPdf(pdfName, pdfName, pdfs, coeffs, True)
-
-#----------------------------------------------------------------------
-
 class WSProducer:
-    mass = ROOT.RooRealVar("CMS_emu_mass", "m_{e#mu}", 180, 20, 200)
+    mass = ROOT.RooRealVar("CMS_emu_mass", "m_{e#mu}", 140, 110, 160)
     mass.setUnit("GeV/c^{2}")
 
     # for filling weighted datsets (for signal)
@@ -214,6 +172,14 @@ class WSProducer:
     #----------------------------------------
 
     def fillDataset(self, itype, cat, mass, weight):
+
+        # the underflow/overflow behaviour seems to be
+        # such that in the dataset we get e.g. lots
+        # of entries in the dataset at the lower and
+        # higher end of the variable range...
+        if mass < self.mass.getMin() or mass >= self.mass.getMax():
+            return
+
         self.mass.setVal(mass)
         self.weightVar.setVal(weight)
 
@@ -310,12 +276,12 @@ class WSProducer:
                                                      1)
                                      for gaussIndex in range(numGaussians - 1)]
                     
-                    pdf = makeSumOfGaussians("sigpdf_" + suffix,
-                                             self.mass,
-                                             mhyp,
-                                             dmuvars,
-                                             sigmavars,
-                                             fractionvars)
+                    pdf = utils.makeSumOfGaussians("sigpdf_" + suffix,
+                                                   self.mass,
+                                                   mhyp,
+                                                   dmuvars,
+                                                   sigmavars,
+                                                   fractionvars)
                                              
                     # import into workspace
                     self.imp(pdf, True)

@@ -12,7 +12,11 @@ outputFname = "workspace-sigfit.root"
 
 wsname = "CMS_emu_workspace"
 
+# name of reconstructed mass variable
 massVarName = "CMS_emu_mass"
+
+# name of Higgs mass hypothesis variable (created by this script)
+massHypName = "MH"
 
 #----------------------------------------------------------------------
 
@@ -128,6 +132,8 @@ else:
 
 
 import ROOT; gcs = []
+ROOT.gROOT.SetBatch(1)
+
 
 fin = ROOT.TFile(inputFname)
 assert fin.IsOpen(), "could not open input workspace file " + inputFname
@@ -136,7 +142,14 @@ ws = fin.Get(wsname)
 
 assert ws != None, "could not find workspace '%s' in file '%s'" % (wsname, inputFname)
 
+# reconstructed mass variable
 massVar = utils.getObj(ws, massVarName)
+
+mhypVar = ROOT.RooRealVar(massHypName, "Higgs mass hypothesis variable",
+                          massVar.getVal(),
+                          massVar.getMin(),
+                          massVar.getMax())
+
 
 # get the list of all categories
 allCats   = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
@@ -156,6 +169,8 @@ for cat in allCats:
         # second index is the mass point index
         sigmaValues = []
         dmuValues = []
+        fracValues = []
+        normValues = []
 
         for mass in allMasses:
 
@@ -172,14 +187,17 @@ for cat in allCats:
             #----------
 
             sigmaVars = getGaussianVars(ws, "sigma", proc, mass, cat)
-            dmuVars   = getGaussianVars(ws, "dmu", proc, mass, cat)
+            dmuVars   = getGaussianVars(ws, "dmu",   proc, mass, cat)
+            fracVars  = getGaussianVars(ws, "frac",  proc, mass, cat)
 
             numGaussians = len(sigmaVars)
             assert numGaussians == len(dmuVars)
+            assert numGaussians == len(fracVars) + 1
 
             for varname, vars in (("sigma", sigmaVars),
-                                  ("dmu",   dmuVars)):
-                for gaussianIndex in range(numGaussians):
+                                  ("dmu",   dmuVars),
+                                  ):
+                for gaussianIndex in range(len(vars)):
 
                     # set the variable range and initial value of this variable
                     setVariableRange(fitparams,
@@ -213,18 +231,55 @@ for cat in allCats:
 
 
             #----------
+            # normalization object
+            #----------
+
+            sumWeights = dataset.sumEntries()
+            normVar = ROOT.RooRealVar(pdf.GetName() + "_norm",
+                                      pdf.GetName() + "_norm",
+                                      sumWeights,
+                                      0,
+                                      sumWeights); gcs.append(normVar)
+            normVar.setConstant(True)
+                                      
+            getattr(ws, 'import')(normVar)
+
+            normValues.append(sumWeights)
+
+            #----------
+            # sort the Gaussian components according to the width
+            #----------
+
+            indices = sorted(range(numGaussians), key = lambda index: sigmaVars[index].getVal() )
+
+            # instead of reordering the objects, we re-assign the values
+            utils.reassignValues(indices, sigmaVars)
+            utils.reassignValues(indices, dmuVars)
+
+            # note that for the fractions (which are continued fractions),
+            # we must expand them, sort and then collapse again
+            # (the values will be different !)
+
+            expandedFracValues = utils.expandContinuedFraction([ x.getVal() for x in fracVars])
+            expandedFracValues = utils.reorder(indices, expandedFracValues)
+            unexpandedFracValues = utils.collapseContinuedFraction(expandedFracValues)
+            for value, var in zip(unexpandedFracValues, fracVars):
+                var.setVal(value)
+
+            #----------
             # fix the fitted parameters and read the fitted values
             #----------
 
-
-            # TODO: sort the Gaussian components, e.g. according to the width
-
             for vars, values in ((sigmaVars, sigmaValues),
-                                 (dmuVars, dmuValues)):
+                                 (dmuVars, dmuValues),
+                                 (fracVars, fracValues),
+                                 ):
 
                 if len(values) == 0:
-                    values.extend([[ ] for i in range(numGaussians) ] )
+                    values.extend([[ ] for i in range(len(vars)) ] )
 
+                # freeze the fitted variables at the fit final values
+                # and add the values to a list for interpolation
                 for gaussIndex, var in enumerate(vars):
                     var.setConstant(True)
                     values[gaussIndex].append(var.getVal())
@@ -238,8 +293,13 @@ for cat in allCats:
         #----------
         # produce the interpolating objects
         #----------
-        for varname, values in (("sigma", sigmaValues),
-                              ("dmu", dmuValues)):
+        interpDmuFuncs = []
+        interpSigmaFuncs = []
+        interpFracFuncs = []
+
+        for varname, values, interpFuncs in (("sigma", sigmaValues, interpSigmaFuncs),
+                                             ("dmu", dmuValues, interpDmuFuncs),
+                                             ("frac", fracValues, interpFracFuncs)):
 
             for gaussIndex in range(len(values)):
                 funcname = utils.makeGaussianVarname("interp_" + varname,
@@ -249,20 +309,53 @@ for cat in allCats:
                                           gaussIndex
                                           )
 
-                print "ZZ",values[gaussIndex]
                 func = utils.makePiecewiseLinearFunction(funcname,
-                                                         massVar,
+                                                         mhypVar,
                                                          allMasses,
                                                          values[gaussIndex])
 
                 # import this function into the workspace
                 getattr(ws, 'import')(func, ROOT.RooFit.RecycleConflictNodes())
+
+                interpFuncs.append(func)
+
             # end of loop over Gaussian components
 
         # end of loop over variables
 
-        # TODO: build the interpolated signal PDF
+        #----------
+        # build the interpolated signal PDF
+        #----------
 
+        # example name: sigpdf_vbf_cat6
+
+        suffix = "_".join([
+            proc,
+            # str(mhyp), # not used here
+            cat,
+            ])
+
+        pdfname = "sigpdf_" + suffix
+        pdf = utils.makeSumOfGaussians(pdfname,
+                                       massVar,       # reconstructed mass
+                                       mhypVar,       # Higgs mass hypothesis
+                                       interpDmuFuncs,
+                                       interpSigmaFuncs,
+                                       interpFracFuncs); gcs.append(pdf)
+
+        # import this function into the workspace
+        getattr(ws, 'import')(pdf, ROOT.RooFit.RecycleConflictNodes())
+
+        #----------
+        # build the interpolated normalization function
+        #----------
+        normfunc = utils.makePiecewiseLinearFunction(pdfname + "_norm",
+                                                     mhypVar,
+                                                     allMasses,
+                                                     normValues); gcs.append(pdf)
+
+        # import this function into the workspace
+        getattr(ws, 'import')(normfunc, ROOT.RooFit.RecycleConflictNodes())
 
     # end of loop over signal processes
 

@@ -98,6 +98,9 @@ class Analysis:
         self.tree.SetBranchStatus("phi1", 1)
         self.tree.SetBranchStatus("phi2", 1)
 
+        if self.options.pdfindex != 0:
+            self.tree.SetBranchStatus("pdf_weights", 1)
+
         self.entries = self.tree.GetEntries()
 
     def loop(self):
@@ -149,6 +152,15 @@ class Analysis:
             raise Exception("unsupported jet energy scale mode " + self.options.jesMode)
         
         weight = self.tree.weight
+
+        #----------
+        # reweight for different PDF
+        #----------
+        if self.options.pdfindex != 0:
+            weight *= self.tree.pdf_weights[self.options.pdfindex] / self.tree.pdf_weights[0]
+
+        #----------
+
         masses = self.tree.mass
         et1 = self.tree.et1
         et2 = self.tree.et2
