@@ -49,6 +49,65 @@ def plotSignalFitsVsMC(ws, recoMassVar, cat, proc):
     # end of loop over masses
     frame.Draw()
 
+#----------------------------------------------------------------------
+
+def plotParameterEvolution(ws, mhypVar, cat, proc):
+
+    for varname in ("sigma", "dmu", "frac"):
+
+        # plot all functions of the same type on the same
+        # frame (useful e.g. to make sure that the sigma
+        # parameters do not cross)
+        frame = mhypVar.frame(); gcs.append(frame)
+        frame.SetTitle("%s %s %s" % (varname, cat, proc))
+        gcs.append(ROOT.TCanvas())
+        
+        for gaussIndex in itertools.count():
+            funcname = utils.makeGaussianVarname("interp_" + varname,
+                                                 proc,
+                                                 None, # mhyp
+                                                 cat,
+                                                 gaussIndex
+                                                 )
+
+            func = ws.obj(funcname)
+
+            print "ZZ",funcname,func
+
+            # check if this object is present in the workspace
+            # if not, stop the loop
+            if func == None:
+                break
+
+            func.plotOn(frame)
+
+        # end of loop over Gaussian components
+        frame.Draw()
+
+    # end of loop over variables
+
+    #----------
+    # plot evolution of the normalization variable
+    # (which does NOT have Gaussian components)
+    #----------
+
+    # signal normalization function
+    suffix = "_".join([
+        proc,
+        cat,
+        ])
+    pdfname = "sigpdf_" + suffix
+    funcname = pdfname + "_norm"
+
+    func = utils.getObj(ws,funcname)
+
+    frame = mhypVar.frame(); gcs.append(frame)
+    frame.SetTitle("signal normalization %s %s" % (cat, proc))
+    gcs.append(ROOT.TCanvas())
+
+    func.plotOn(frame)
+    frame.Draw()
+    
 
 #----------------------------------------------------------------------
 # main
@@ -80,8 +139,6 @@ allCats   = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
 allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
 allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
 
-# allCats = [ 'cat0' ]; allProcs = ['ggh']
-
 for cat in allCats:
     for proc in allProcs:
 
@@ -89,6 +146,15 @@ for cat in allCats:
         # plot signal fit vs. MC sample (signal)
         #----------
         plotSignalFitsVsMC(ws, recoMassVar, cat, proc)
+
+        #----------
+        # draw evolution of interpolated parameters vs. mass hypothesis
+        #----------
+        plotParameterEvolution(ws, mhypVar, cat, proc)
+
+        #----------
+        # plot the interpolated signal PDFs at more values of mhyp
+        #----------
 
         
 
