@@ -72,8 +72,6 @@ def plotParameterEvolution(ws, mhypVar, cat, proc):
 
             func = ws.obj(funcname)
 
-            print "ZZ",funcname,func
-
             # check if this object is present in the workspace
             # if not, stop the loop
             if func == None:
@@ -107,6 +105,50 @@ def plotParameterEvolution(ws, mhypVar, cat, proc):
 
     func.plotOn(frame)
     frame.Draw()
+
+
+#----------------------------------------------------------------------
+
+def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc):
+
+    numPoints = 21
+
+    import numpy
+    massValues = numpy.linspace(mhypVar.getMin(),
+                                mhypVar.getMax(),
+
+                                numPoints) 
+
+    suffix = "_".join([
+        proc,
+        cat,
+        ])
+    pdfname = "sigpdf_" + suffix
+
+    pdf = utils.getObj(ws,pdfname)
+
+    normFunc = utils.getObj(ws,pdfname + "_norm")
+
+    # build an extended pdf
+
+    extPdf = ROOT.RooExtendPdf("ext_" + pdfname,
+                               "ext_" + pdfname,
+                               pdf,
+                               normFunc)
+
+    frame = recoMassVar.frame(); gcs.append(frame)
+    frame.SetTitle("interpolated signal pdf %s %s" % (cat, proc))
+    gcs.append(ROOT.TCanvas())
+
+    for massValue in massValues:
+        mhypVar.setVal(massValue)
+
+        extPdf.plotOn(frame, ROOT.RooFit.Normalization(normFunc.getVal(),
+                                                       ROOT.RooAbsReal.NumEvent))
+
+
+    frame.Draw()
+
     
 
 #----------------------------------------------------------------------
@@ -139,6 +181,8 @@ allCats   = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
 allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
 allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
 
+# allCats = [ 'cat0'] ; allProcs = [ 'ggh' ]
+
 for cat in allCats:
     for proc in allProcs:
 
@@ -155,10 +199,7 @@ for cat in allCats:
         #----------
         # plot the interpolated signal PDFs at more values of mhyp
         #----------
-
-        
-
-
+        plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc)
         
 
     # end of loop over processes
