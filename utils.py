@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import sys
+
 # garbage collection saver
 gcs = []
 
