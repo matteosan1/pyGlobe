@@ -170,6 +170,7 @@ for cat in allCats:
         sigmaValues = []
         dmuValues = []
         fracValues = []
+        normValues = []
 
         for mass in allMasses:
 
@@ -243,6 +244,8 @@ for cat in allCats:
                                       
             getattr(ws, 'import')(normVar)
 
+            normValues.append(sumWeights)
+
             #----------
             # sort the Gaussian components according to the width
             #----------
@@ -290,9 +293,13 @@ for cat in allCats:
         #----------
         # produce the interpolating objects
         #----------
-        for varname, values in (("sigma", sigmaValues),
-                                ("dmu", dmuValues),
-                                ("frac", fracValues)):
+        interpDmuFuncs = []
+        interpSigmaFuncs = []
+        interpFracFuncs = []
+
+        for varname, values, interpFuncs in (("sigma", sigmaValues, interpSigmaFuncs),
+                                             ("dmu", dmuValues, interpDmuFuncs),
+                                             ("frac", fracValues, interpFracFuncs)):
 
             for gaussIndex in range(len(values)):
                 funcname = utils.makeGaussianVarname("interp_" + varname,
@@ -302,7 +309,6 @@ for cat in allCats:
                                           gaussIndex
                                           )
 
-                print "ZZ",values[gaussIndex]
                 func = utils.makePiecewiseLinearFunction(funcname,
                                                          mhypVar,
                                                          allMasses,
@@ -310,12 +316,46 @@ for cat in allCats:
 
                 # import this function into the workspace
                 getattr(ws, 'import')(func, ROOT.RooFit.RecycleConflictNodes())
+
+                interpFuncs.append(func)
+
             # end of loop over Gaussian components
 
         # end of loop over variables
 
-        # TODO: build the interpolated signal PDF
+        #----------
+        # build the interpolated signal PDF
+        #----------
 
+        # example name: sigpdf_vbf_cat6
+
+        suffix = "_".join([
+            proc,
+            # str(mhyp), # not used here
+            cat,
+            ])
+
+        pdfname = "sigpdf_" + suffix
+        pdf = utils.makeSumOfGaussians(pdfname,
+                                       massVar,       # reconstructed mass
+                                       mhypVar,       # Higgs mass hypothesis
+                                       interpDmuFuncs,
+                                       interpSigmaFuncs,
+                                       interpFracFuncs); gcs.append(pdf)
+
+        # import this function into the workspace
+        getattr(ws, 'import')(pdf, ROOT.RooFit.RecycleConflictNodes())
+
+        #----------
+        # build the interpolated normalization function
+        #----------
+        normfunc = utils.makePiecewiseLinearFunction(pdfname + "_norm",
+                                                     mhypVar,
+                                                     allMasses,
+                                                     normValues); gcs.append(pdf)
+
+        # import this function into the workspace
+        getattr(ws, 'import')(normfunc, ROOT.RooFit.RecycleConflictNodes())
 
     # end of loop over signal processes
 
