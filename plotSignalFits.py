@@ -73,7 +73,7 @@ def plotSignalFitsVsMC(ws, recoMassVar, cat, proc, htmlout):
 
 #----------------------------------------------------------------------
 
-def plotParameterEvolution(ws, mhypVar, cat, proc, htmlout):
+def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
 
     for varname in ("sigma", "dmu", "frac"):
 
@@ -99,7 +99,13 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, htmlout):
             if func == None:
                 break
 
-            func.plotOn(frame)
+            func.plotOn(frame,
+                        # commented out since some normalization
+                        # seems to be applied by RooFit when giving a range
+                        # (which does not make sense since this is a function,
+                        # not a PDF)
+                        # ROOT.RooFit.Range(minMass, maxMass)
+                        )
 
         # end of loop over Gaussian components
         frame.Draw()
@@ -128,7 +134,10 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, htmlout):
     frame.SetTitle("signal normalization %s %s" % (cat, proc))
     gcs.append(ROOT.TCanvas())
 
-    func.plotOn(frame)
+    func.plotOn(frame,
+                # disabled (see above)
+                # ROOT.RooFit.Range(minMass, maxMass)
+                )
     frame.Draw()
 
     if htmlout != None:
@@ -136,13 +145,13 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, htmlout):
 
 #----------------------------------------------------------------------
 
-def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, htmlout):
+def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, minMass, maxMass, htmlout):
 
     numPoints = 21
 
     import numpy
-    massValues = numpy.linspace(mhypVar.getMin(),
-                                mhypVar.getMax(),
+    massValues = numpy.linspace(minMass,
+                                maxMass,
 
                                 numPoints) 
 
@@ -284,6 +293,10 @@ print >> htmlout, "</tbody></table>"
 print >> htmlout, "<hr/>"
 
 #----------
+
+minMassForPlots = min(allMasses)
+maxMassForPlots = max(allMasses)
+
 for cat in allCats:
 
     print >> htmlout, "<h2>%s</h2><br/>" % cat
@@ -304,12 +317,12 @@ for cat in allCats:
         #----------
         # draw evolution of interpolated parameters vs. mass hypothesis
         #----------
-        plotParameterEvolution(ws, mhypVar, cat, proc, htmlout)
+        plotParameterEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout)
 
         #----------
         # plot the interpolated signal PDFs at more values of mhyp
         #----------
-        plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, htmlout)
+        plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout)
 
         print >> htmlout, "<hr/><br/>"
 
