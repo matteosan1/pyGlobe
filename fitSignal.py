@@ -529,10 +529,9 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
 
     # ugly hack, works as long as ew don't have too many mass points
     # (I could not get this here to work: https://root.cern.ch/phpBB3/viewtopic.php?f=15&t=16882 )
-    cmd = "simultaneousDataset = ROOT.RooDataSet(name, name, ROOT.RooArgSet(recoMassVar), ROOT.RooFit.Index(catsForSimultaneous),%s)" % ",".join(
-        [ 'ROOT.RooFit.Import("m%d", datasetsForSimultaneous[%d])' % (mass, index) for index,mass in enumerate(allMasses) ])
+    simultaneousDataset = eval("ROOT.RooDataSet(name, name, ROOT.RooArgSet(recoMassVar), ROOT.RooFit.Index(catsForSimultaneous),%s)" % ",".join(
+        [ 'ROOT.RooFit.Import("m%d", datasetsForSimultaneous[%d])' % (mass, index) for index,mass in enumerate(allMasses) ]))
 
-    exec cmd in globals(), locals()
     #----------
     # perform the fit
     #----------
