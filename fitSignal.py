@@ -154,7 +154,7 @@ def setVariableRange(fitparams,
 
 #----------------------------------------------------------------------
 
-def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisance):
+def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisance, resolutionNuisance):
     # classic fitting of signal MC
 
     # fitted values for this category and signal process
@@ -325,6 +325,7 @@ def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisa
                                    interpSigmaFuncs,
                                    interpFracFuncs,
                                    massScaleNuisance = massScaleNuisance,
+                                   resolutionNuisance = resolutionNuisance,
                                    ); gcs.append(pdf)
 
     # import this function into the workspace
@@ -491,6 +492,12 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
                                          0,10, # y range
                                          mhypVar, coeffsDict); gcs.append(sigmaFunc)
 
+        if resolutionNuisance != None:
+            sigmaFunc = ROOT.RooFormulaVar("nuisancedSigmaFunc" + name[9:],
+                                           "nuisancedSigmaFunc" + name[9:],
+                                           "@0 * @1",
+                                           ROOT.RooArgList(sigmaFunc, resolutionNuisance)); gcs.append(sigmaFunc)
+        
 
         #----------                                            
         # build the Gaussian
@@ -549,7 +556,7 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
 
 #----------------------------------------------------------------------
 
-def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisance):
+def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisance, resolutionNuisance):
     # simultaneous fit across multiple mass hypotheses
 
     mhypVars = []
@@ -673,7 +680,8 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScale
     finalPdf = makeGaussianSum(mhypVar, recoMassVar, None, mhypVar.getMin(), mhypVar.getMax(), coeffsDict,
                                pdfname,
 
-                               massScaleNuisance = massScaleNuisance
+                               massScaleNuisance = massScaleNuisance,
+                               resolutionNuisance = resolutionNuisance,
 
                                ); gcs.append(finalPdf)
 
@@ -795,21 +803,32 @@ else:
 
 # nuisance parameters
 
+#----------
 # mass scale nuisance parameter centered at 1 -> model this as lnN distributed nuisance
+#----------
 massScaleNuisance = ROOT.RooRealVar("CMS_emu_scale",
                                     "mass scale nuisance",
                                     1, 0, 2)
 massScaleNuisance.setConstant(True)
 
+#----------
+# resolution nuisance
+#----------
+resolutionNuisance = ROOT.RooRealVar("CMS_emu_reso",
+                                    "mass resolution nuisance",
+                                    1, 0, 2)
+resolutionNuisance.setConstant(True)
+
+#----------
 for cat in allCats:
     for proc in allProcs:
 
         if options.simultaneous:
-            doFitsSimultaneous(ws, mhypVar, massVar, cat, proc, allMasses, massScaleNuisance)
+            doFitsSimultaneous(ws, mhypVar, massVar, cat, proc, allMasses, massScaleNuisance, resolutionNuisance)
         else:
             # create the PDFs to be fitted first
             makeSignalPdfsForFit(ws, cat, proc, massVar, allMasses)
-            doFitsClassic(ws, mhypVar, massVar, cat, proc, allMasses, massScaleNuisance)
+            doFitsClassic(ws, mhypVar, massVar, cat, proc, allMasses, massScaleNuisance, resolutionNuisance)
 
     # end of loop over signal processes
 

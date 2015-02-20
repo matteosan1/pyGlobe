@@ -219,10 +219,21 @@ def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fr
                                      args)
         gcs.append(meanVar)
 
+        #----------
+        if resolutionNuisance != None:
+            sigmaVar = ROOT.RooFormulaVar(("nuisancedSigma_g%d_" % i) + pdfName,
+                                          "nuisanced sigma Gaussian %d" % i,
+                                          "@0 * @1",
+                                          ROOT.RooArgList(sigmaVars[i], resolutionNuisance)); gcs.append(sigmaVar)
+            
+        else:
+            sigmaVar = sigmaVars[i]
+        #----------
+
         pdf = ROOT.RooGaussian(pdfName + "_g%d" % i, "Gaussian %d" % i,
                                recoMassVar,
                                meanVar,
-                               sigmaVars[i])
+                               sigmaVar)
         gcs.append(pdf)
 
         pdfs.add(pdf)
