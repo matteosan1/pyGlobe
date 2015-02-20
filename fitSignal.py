@@ -472,7 +472,7 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
                 fracFunc, fracFuncCoeffs = makeBernsteinFormula(polynomialDegree,
                                                                 "fracfunc_f%d_m%d" % (gaussIndex - 1, mass),
                                                                 mhypVar.getMin(), mhypVar.getMax(),
-                                                                0,10, # y range
+                                                                0,1, # y range
                                                                 mhypVars[-1]); gcs.append(fracFunc)
 
                 fractionsForGaussian.add(fracFunc)
