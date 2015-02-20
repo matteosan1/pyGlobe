@@ -357,6 +357,131 @@ def makeBernsteinFormula(degree, formulaName, addMassToFormulaName, xmin, xmax, 
 
 #----------------------------------------------------------------------
 
+def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict):
+    # param massForName is the mass to be used in the name of the final
+    # addPdf (this can be set to None to build the final PDF or a
+    # given mass for the fitting stage)
+
+    #----------
+    # build the expressions for the base polynomials (Bernstein polynimials) for the parameter
+    # evolutions
+    #
+    # we plug in the mass values explicitly during the fit to create a separate PDF for
+    # each mass hypothesis
+    #----------
+
+    numGaussians = 2
+
+    # degree of polynomial for interpolation across mass hypotheses
+    polynomialDegree = 2
+
+    fractionsForGaussian = ROOT.RooArgList()
+    gaussianPdfs = ROOT.RooArgList()
+
+    for gaussIndex in range(numGaussians):
+
+        # build the Gaussian from the mu and sigma functions
+        # we build one 'function' (with the mass argument fixed)
+        # for each mass point
+
+        #----------
+        # deltaMu
+        #----------
+
+        name = utils.makeGaussianVarname("dmufunc",
+                                         proc,
+                                         None, # no mass, use common coefficients 
+                                         cat,
+                                         gaussIndex)
+
+        dmuFunc = makeBernsteinFormula(polynomialDegree,
+                                       name,
+                                       True,
+                                       xmin, xmax,
+                                       -10,10, # y range
+                                       mhypVar, coeffsDict); gcs.append(dmuFunc)
+
+        #----------
+        # build mu from delta mu
+        #----------
+        name = utils.makeGaussianVarname("mufunc",
+                                         proc,
+                                         None, # no mass, use common coefficients 
+                                         cat,
+                                         gaussIndex)
+
+        muFunc = ROOT.RooFormulaVar(name, name,
+                                    "@0 + @1",
+                                    ROOT.RooArgList(mhypVar,
+                                                    dmuFunc)); gcs.append(muFunc)
+
+        #----------
+        # sigma
+        #----------
+        name = utils.makeGaussianVarname("sigmafunc",
+                                         proc,
+                                         None, # no mass, use common coefficients 
+                                         cat,
+                                         gaussIndex)
+
+
+        sigmaFunc = makeBernsteinFormula(polynomialDegree,
+                                         name,
+                                         True,
+                                         xmin, xmax,
+                                         0,10, # y range
+                                         mhypVar, coeffsDict); gcs.append(sigmaFunc)
+
+
+        #----------                                            
+        # build the Gaussian
+        #----------
+        name = utils.makeGaussianVarname("gauss",
+                                         proc,
+                                         None, # no mass, use common coefficients 
+                                         cat,
+                                         gaussIndex)
+
+        gaussian = ROOT.RooGaussian(name, name,
+                                    recoMassVar,
+                                    muFunc,
+                                    sigmaFunc); gcs.append(gaussian)
+        gaussianPdfs.add(gaussian)
+
+        #----------
+        # create a weighting coefficient
+        #----------
+        if gaussIndex > 0:
+            fracFunc = makeBernsteinFormula(polynomialDegree,
+                                            "fracfunc_f%d" % (gaussIndex - 1),
+                                            True,
+                                            xmin, xmax,
+                                            0,1, # y range
+                                            mhypVar, coeffsDict); gcs.append(fracFunc)
+
+            fractionsForGaussian.add(fracFunc)
+
+    # end of loop over Gaussians
+
+    #----------
+    # build the RooAddPdf
+    #----------
+    name = utils.makeGaussianVarname("addpdf",
+                                     proc,
+                                     massForName,
+                                     cat,
+                                     None)
+
+    addPdf = ROOT.RooAddPdf(name, name,
+                            gaussianPdfs,
+                            fractionsForGaussian); gcs.append(addPdf)
+
+
+    return addPdf
+
+
+#----------------------------------------------------------------------
+
 def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
     # simultaneous fit across multiple mass hypotheses
 
@@ -403,119 +528,8 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
         thisMhypVar.setConstant(True)
         mhypVars.append(thisMhypVar)
 
-        #----------
-        # build the expressions for the base polynomials (Bernstein polynimials) for the parameter
-        # evolutions
-        #
-        # we plug in the mass values explicitly during the fit to create a separate PDF for
-        # each mass hypothesis
-        #----------
 
-        numGaussians = 2
-
-        # degree of polynomial for interpolation across mass hypotheses
-        polynomialDegree = 2
-
-        fractionsForGaussian = ROOT.RooArgList()
-        gaussianPdfs = ROOT.RooArgList()
-
-        for gaussIndex in range(numGaussians):
-
-            # build the Gaussian from the mu and sigma functions
-            # we build one 'function' (with the mass argument fixed)
-            # for each mass point
-
-            #----------
-            # deltaMu
-            #----------
-
-            name = utils.makeGaussianVarname("dmufunc",
-                                             proc,
-                                             None, # no mass, use common coefficients 
-                                             cat,
-                                             gaussIndex)
-            
-            dmuFunc = makeBernsteinFormula(polynomialDegree,
-                                           name,
-                                           True,
-                                           mhypVar.getMin(), mhypVar.getMax(),
-                                           -10,10, # y range
-                                           thisMhypVar, coeffsDict); gcs.append(dmuFunc)
-            
-            #----------
-            # build mu from delta mu
-            #----------
-            name = utils.makeGaussianVarname("mufunc",
-                                             proc,
-                                             None, # no mass, use common coefficients 
-                                             cat,
-                                             gaussIndex)
-
-            muFunc = ROOT.RooFormulaVar(name, name,
-                                        "@0 + @1",
-                                        ROOT.RooArgList(thisMhypVar,
-                                                        dmuFunc)); gcs.append(muFunc)
-            
-            #----------
-            # sigma
-            #----------
-            name = utils.makeGaussianVarname("sigmafunc",
-                                             proc,
-                                             None, # no mass, use common coefficients 
-                                             cat,
-                                             gaussIndex)
-
-            
-            sigmaFunc = makeBernsteinFormula(polynomialDegree,
-                                             name,
-                                             True,
-                                             mhypVar.getMin(), mhypVar.getMax(),
-                                             0,10, # y range
-                                             thisMhypVar, coeffsDict); gcs.append(sigmaFunc)
-            
-
-            #----------                                            
-            # build the Gaussian
-            #----------
-            name = utils.makeGaussianVarname("gauss",
-                                             proc,
-                                             None, # no mass, use common coefficients 
-                                             cat,
-                                             gaussIndex)
-
-            gaussian = ROOT.RooGaussian(name, name,
-                                        recoMassVar,
-                                        muFunc,
-                                        sigmaFunc); gcs.append(gaussian)
-            gaussianPdfs.add(gaussian)
-
-            #----------
-            # create a weighting coefficient
-            #----------
-            if gaussIndex > 0:
-                fracFunc = makeBernsteinFormula(polynomialDegree,
-                                                "fracfunc_f%d" % (gaussIndex - 1),
-                                                True,
-                                                mhypVar.getMin(), mhypVar.getMax(),
-                                                0,1, # y range
-                                                mhypVars[-1], coeffsDict); gcs.append(fracFunc)
-
-                fractionsForGaussian.add(fracFunc)
-
-        # end of loop over Gaussians
-
-        #----------
-        # build the RooAddPdf
-        #----------
-        name = utils.makeGaussianVarname("addpdf",
-                                         proc,
-                                         mass,
-                                         cat,
-                                         None)
-
-        addPdf = ROOT.RooAddPdf(name, name,
-                                gaussianPdfs,
-                                fractionsForGaussian); gcs.append(addPdf)
+        addPdf = makeGaussianSum(thisMhypVar, recoMassVar, mass, mhypVar.getMin(), mhypVar.getMax(), coeffsDict)
 
         simultaneousPdf.addPdf(addPdf, "m%d" % mass)
 
