@@ -154,11 +154,51 @@ def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc):
 #----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
-ARGV = sys.argv[1:]
+from optparse import OptionParser
+parser = OptionParser("""
+
+  usage: %prog [options] input_file
+
+  produces control plots for signal model building
+"""
+)
+
+parser.add_option("--simultaneous",
+                  default = False,
+                  action = "store_true",
+                  help="look for simultaneous fit objects instead of standard ones",
+                  )
+
+parser.add_option("--cat",
+                  dest = "cats",
+                  type = str,
+                  default = None,
+                  help="comma separated list of category names (default is to use all found in the workspace)",
+                  )
+
+parser.add_option("--proc",
+                  dest = "procs",
+                  type = str,
+                  default = None,
+                  help="comma separated list of process names (default is to use all found in the workspace)",
+                  )
+
+(options, ARGV) = parser.parse_args()
+
+if options.cats != None:
+    options.cats = options.cats.split(',')
+
+if options.procs != None:
+    options.procs = options.procs.split(',')
+
+#----------------------------------------
 
 assert len(ARGV) == 1
 
 inputFname = ARGV.pop(0)
+
+#----------------------------------------
+
 
 import ROOT 
 
@@ -177,11 +217,17 @@ mhypVar = utils.getObj(ws, massHypName)
 #----------
 # get the list of all categories
 #----------
-allCats   = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
-allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
-allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
+if options.cats == None:
+    allCats   = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
+else:
+    allCats = options.cats
 
-# allCats = [ 'cat0'] ; allProcs = [ 'ggh' ]
+allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
+
+if options.procs == None:
+    allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
+else:
+    allProcs = options.procs
 
 for cat in allCats:
     for proc in allProcs:
