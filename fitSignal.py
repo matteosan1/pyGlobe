@@ -295,8 +295,14 @@ def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses):
 
 #----------------------------------------------------------------------
 
-def makeBernsteinFormula(degree, formulaName, xmin, xmax, ymin, ymax, massHypVar):
-    # returns (function, list of coefficients)
+def makeBernsteinFormula(degree, formulaName, addMassToFormulaName, xmin, xmax, ymin, ymax, massHypVar, coeffsDict):
+    # if coeffsDict is not None, parameters are first searched for there (by name)
+    # and if not existing, created parameters will be added there 
+    #
+    # addMassToFormulaName is normally set to True during the fitting
+    # (the mass is NOT added to the coefficients of the function which
+    #  are common across all mass hyptheses) and set to False
+    #  when producing the final function 
 
     parts = []
 
@@ -313,14 +319,23 @@ def makeBernsteinFormula(degree, formulaName, xmin, xmax, ymin, ymax, massHypVar
     for i in range(degree + 1):
         # see http://en.wikipedia.org/wiki/Bernstein_polynomial#Definition
 
-        # create a coefficient
-        coeff = ROOT.RooRealVar(formulaName + "_c%d" % i,
-                                formulaName + "_c%d" % i,
-                                0.5 * (ymax + ymin),
-                                ymin,
-                                ymax); gcs.append(coeff)
+        name = formulaName + "_c%d" % i
+
+        if coeffsDict != None and coeffsDict.has_key(name):
+            # re-use existing parameter
+            coeff = coeffsDict[name]
+        else:
+            # create a coefficient
+            coeff = ROOT.RooRealVar(name,
+                                    name,
+                                    0.5 * (ymax + ymin),
+                                    ymin,
+                                    ymax); gcs.append(coeff)
+
+            if coeffsDict != None:
+                coeffsDict[name] = coeff
+            
         args.add(coeff)
-        coeffList.append(coeff)
 
         combFactor = scipy.misc.comb(degree, i)
 
@@ -330,10 +345,14 @@ def makeBernsteinFormula(degree, formulaName, xmin, xmax, ymin, ymax, massHypVar
         parts.append("@{argIndex} * {combFactor} * pow({inverseRange} * (@0 - {xmin}),{i}) * pow({inverseRange} * ({xmax} - @0), {icomplement})".format(**locals()))
 
     formula = " + ".join(parts)
+
+    if addMassToFormulaName:
+        formulaName += "_m%d" % int(massHypVar.getVal() + 0.5)
+
     return ROOT.RooFormulaVar(formulaName,
                               formulaName,
                               formula,
-                              args), coeffList
+                              args)
 
 
 #----------------------------------------------------------------------
@@ -369,6 +388,9 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
     # datasetsForSimultaneous = ROOT.std.map('string, RooDataSet*')(); gcs.append(datasetsForSimultaneous)
 
     datasetsForSimultaneous = []
+
+    # coefficients for the interpolating functions
+    coeffsDict = {}
 
     for mass in allMasses:
         # make fixed value mass variables
@@ -409,22 +431,23 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
 
             name = utils.makeGaussianVarname("dmufunc",
                                              proc,
-                                             mass,
+                                             None, # no mass, use common coefficients 
                                              cat,
                                              gaussIndex)
             
-            dmuFunc, dmuFuncCoeffs = makeBernsteinFormula(polynomialDegree,
-                                                          name,
-                                                          mhypVar.getMin(), mhypVar.getMax(),
-                                                          -10,10, # y range
-                                                          thisMhypVar); gcs.append(dmuFunc)
-
+            dmuFunc = makeBernsteinFormula(polynomialDegree,
+                                           name,
+                                           True,
+                                           mhypVar.getMin(), mhypVar.getMax(),
+                                           -10,10, # y range
+                                           thisMhypVar, coeffsDict); gcs.append(dmuFunc)
+            
             #----------
             # build mu from delta mu
             #----------
             name = utils.makeGaussianVarname("mufunc",
                                              proc,
-                                             mass,
+                                             None, # no mass, use common coefficients 
                                              cat,
                                              gaussIndex)
 
@@ -438,24 +461,25 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
             #----------
             name = utils.makeGaussianVarname("sigmafunc",
                                              proc,
-                                             mass,
+                                             None, # no mass, use common coefficients 
                                              cat,
                                              gaussIndex)
 
             
-            sigmaFunc, sigmaFuncCoeffs = makeBernsteinFormula(polynomialDegree,
-                                                              name,
-                                                              mhypVar.getMin(), mhypVar.getMax(),
-                                                              0,10, # y range
-                                                              thisMhypVar); gcs.append(sigmaFunc)
-
+            sigmaFunc = makeBernsteinFormula(polynomialDegree,
+                                             name,
+                                             True,
+                                             mhypVar.getMin(), mhypVar.getMax(),
+                                             0,10, # y range
+                                             thisMhypVar, coeffsDict); gcs.append(sigmaFunc)
+            
 
             #----------                                            
             # build the Gaussian
             #----------
             name = utils.makeGaussianVarname("gauss",
                                              proc,
-                                             mass,
+                                             None, # no mass, use common coefficients 
                                              cat,
                                              gaussIndex)
 
@@ -469,11 +493,12 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
             # create a weighting coefficient
             #----------
             if gaussIndex > 0:
-                fracFunc, fracFuncCoeffs = makeBernsteinFormula(polynomialDegree,
-                                                                "fracfunc_f%d_m%d" % (gaussIndex - 1, mass),
-                                                                mhypVar.getMin(), mhypVar.getMax(),
-                                                                0,1, # y range
-                                                                mhypVars[-1]); gcs.append(fracFunc)
+                fracFunc = makeBernsteinFormula(polynomialDegree,
+                                                "fracfunc_f%d" % (gaussIndex - 1),
+                                                True,
+                                                mhypVar.getMin(), mhypVar.getMax(),
+                                                0,1, # y range
+                                                mhypVars[-1], coeffsDict); gcs.append(fracFunc)
 
                 fractionsForGaussian.add(fracFunc)
 
