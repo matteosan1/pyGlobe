@@ -17,9 +17,28 @@ massVarName = "CMS_emu_mass"
 # name of Higgs mass hypothesis variable (created by this script)
 massHypName = "MH"
 
+htmlOutputFname = "plots.html"
+
 #----------------------------------------------------------------------
 
-def plotSignalFitsVsMC(ws, recoMassVar, cat, proc):
+def canvasToDataURIString(canv):
+
+    import tempfile
+    fout = tempfile.NamedTemporaryFile(suffix = ".png")
+
+    canv.SaveAs(fout.name)
+
+    fin = open(fout.name)
+    data = fin.read()
+    fin.close()
+
+    fout.close()
+
+    return "data:image/png;base64," + data.encode('base64').replace('\n','')
+
+#----------------------------------------------------------------------
+
+def plotSignalFitsVsMC(ws, recoMassVar, cat, proc, htmlout):
 
     # produce one frame with all the mass hypotheses
     # for the comparison of signal fits to signal MC
@@ -49,9 +68,12 @@ def plotSignalFitsVsMC(ws, recoMassVar, cat, proc):
     # end of loop over masses
     frame.Draw()
 
+    if htmlout != None:
+        print >> htmlout, '<img src="%s" />' % canvasToDataURIString(ROOT.gPad)
+
 #----------------------------------------------------------------------
 
-def plotParameterEvolution(ws, mhypVar, cat, proc):
+def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
 
     for varname in ("sigma", "dmu", "frac"):
 
@@ -77,10 +99,19 @@ def plotParameterEvolution(ws, mhypVar, cat, proc):
             if func == None:
                 break
 
-            func.plotOn(frame)
+            func.plotOn(frame,
+                        # commented out since some normalization
+                        # seems to be applied by RooFit when giving a range
+                        # (which does not make sense since this is a function,
+                        # not a PDF)
+                        # ROOT.RooFit.Range(minMass, maxMass)
+                        )
 
         # end of loop over Gaussian components
         frame.Draw()
+
+        if htmlout != None:
+            print >> htmlout, '<img src="%s" />' % canvasToDataURIString(ROOT.gPad)
 
     # end of loop over variables
 
@@ -103,19 +134,24 @@ def plotParameterEvolution(ws, mhypVar, cat, proc):
     frame.SetTitle("signal normalization %s %s" % (cat, proc))
     gcs.append(ROOT.TCanvas())
 
-    func.plotOn(frame)
+    func.plotOn(frame,
+                # disabled (see above)
+                # ROOT.RooFit.Range(minMass, maxMass)
+                )
     frame.Draw()
 
+    if htmlout != None:
+        print >> htmlout, '<img src="%s" />' % canvasToDataURIString(ROOT.gPad)
 
 #----------------------------------------------------------------------
 
-def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc):
+def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, minMass, maxMass, htmlout):
 
     numPoints = 21
 
     import numpy
-    massValues = numpy.linspace(mhypVar.getMin(),
-                                mhypVar.getMax(),
+    massValues = numpy.linspace(minMass,
+                                maxMass,
 
                                 numPoints) 
 
@@ -149,7 +185,8 @@ def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc):
 
     frame.Draw()
 
-    
+    if htmlout != None:
+        print >> htmlout, '<img src="%s" />' % canvasToDataURIString(ROOT.gPad)
 
 #----------------------------------------------------------------------
 # main
@@ -201,6 +238,7 @@ inputFname = ARGV.pop(0)
 
 
 import ROOT 
+ROOT.gROOT.SetBatch(True)
 
 fin = ROOT.TFile(inputFname)
 assert fin.IsOpen(), "could not open input workspace file " + inputFname
@@ -229,28 +267,123 @@ if options.procs == None:
 else:
     allProcs = options.procs
 
+import cStringIO as StringIO
+htmlout = StringIO.StringIO()
+
+print >> htmlout, "<html>"
+print >> htmlout, "<head>"
+print >> htmlout, "<title>signal model plots for %s</title>" % inputFname
+print >> htmlout, "</head>"
+
+print >> htmlout, "<body>"
+
+print >> htmlout, "<h1>signal model plots for %s</h1><br/>" % inputFname
+
+# table with number of signal events expected and number of MC
+# events with links to plots
+
+print >> htmlout, '<table border="1"><tbody>'
+
+print >> htmlout, "<tr>"
+print >> htmlout, "<th>category</th>"
+print >> htmlout, "<th>mass</th>"
+
+for proc in allProcs:
+    print >> htmlout, "<th>expected events %s</th>" % proc
+    print >> htmlout, "<th>MC events %s</th>" % proc
+    print >> htmlout, "<th>plots</th>"
+
+print >> htmlout, "</tr>"
+
 for cat in allCats:
+
+    for massIndex, mass in enumerate(allMasses):
+
+        print >> htmlout,"<tr>"
+
+        if massIndex == 0:
+            print >> htmlout,'<td rowspan="%d">%s</td>' % (len(allMasses), cat)
+            
+        print >> htmlout,"<td>%d</td>" % mass
+
+        for proc in allProcs:
+
+            dataset = utils.getObj(ws, "sig_Hem_unbinned_%s_%d_%s" % (proc, mass, cat))
+
+            #----------
+            # number of expected events
+            #----------
+
+            print >> htmlout, "<td>%.1f</td>" % dataset.sumEntries()
+
+            #----------
+            # number of MC events
+            #----------
+
+            print >> htmlout, "<td>%d</td>" % dataset.numEntries()
+
+            #----------
+            # link to plots
+            #----------
+            if massIndex == 0:
+                print >> htmlout, '<td rowspan="%d"><a href="#%s_%s">plots</a></td>' %  (len(allMasses), cat, proc)
+
+        # end of loop over processes
+
+        print >> htmlout,"</tr>"
+
+    # end of loop over masses
+        
+print >> htmlout, "</tbody></table>"
+
+print >> htmlout, "<hr/>"
+
+#----------
+
+minMassForPlots = min(allMasses)
+maxMassForPlots = max(allMasses)
+
+for cat in allCats:
+
+    print >> htmlout, "<h2>%s</h2><br/>" % cat
+
     for proc in allProcs:
+
+        # anchor
+        print >> htmlout,'<a name="%s_%s" />' % (cat, proc)
+
+        # title
+        print >> htmlout,"<h3>%s / %s</h3><br/>" % (cat, proc)
 
         #----------
         # plot signal fit vs. MC sample (signal)
         #----------
-        plotSignalFitsVsMC(ws, recoMassVar, cat, proc)
+        plotSignalFitsVsMC(ws, recoMassVar, cat, proc, htmlout)
 
         #----------
         # draw evolution of interpolated parameters vs. mass hypothesis
         #----------
-        plotParameterEvolution(ws, mhypVar, cat, proc)
+        plotParameterEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout)
 
         #----------
         # plot the interpolated signal PDFs at more values of mhyp
         #----------
-        plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc)
-        
+        plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout)
+
+        print >> htmlout, "<hr/><br/>"
 
     # end of loop over processes
 # end of loop over categories
 
-saveAllCanvases()
-    
-print "saveAllCanvases()"
+# saveAllCanvases()
+# print "saveAllCanvases()"
+
+print >> htmlout, "</body>"
+print >> htmlout, "</html>"
+
+# write the html output
+fout = open(htmlOutputFname,"w")
+fout.write(htmlout.getvalue())
+fout.close()
+
+print "wrote plots to",htmlOutputFname
