@@ -154,7 +154,7 @@ def setVariableRange(fitparams,
 
 #----------------------------------------------------------------------
 
-def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses):
+def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisance):
     # classic fitting of signal MC
 
     # fitted values for this category and signal process
@@ -323,7 +323,9 @@ def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses):
                                    mhypVar,       # Higgs mass hypothesis
                                    interpDmuFuncs,
                                    interpSigmaFuncs,
-                                   interpFracFuncs); gcs.append(pdf)
+                                   interpFracFuncs,
+                                   massScaleNuisance = massScaleNuisance,
+                                   ); gcs.append(pdf)
 
     # import this function into the workspace
     getattr(ws, 'import')(pdf, ROOT.RooFit.RecycleConflictNodes())
@@ -404,7 +406,10 @@ def makeBernsteinFormula(degree, formulaName, addMassToFormulaName, xmin, xmax, 
 
 #----------------------------------------------------------------------
 
-def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, finalName = None):
+def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, finalName = None,
+                    massScaleNuisance = None, resolutionNuisance = None):
+    # produces a sum of Gaussians (for the simultaneous case, similar to utils.makeSumOfGaussians(..) )
+    # 
     # param massForName is the mass to be used in the name of the final
     # addPdf (this can be set to None to build the final PDF or a
     # given mass for the fitting stage)
@@ -457,10 +462,17 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
                                          cat,
                                          gaussIndex)
 
+        if massScaleNuisance != None:
+            formula = "(@0 + @1) * @2"
+            args = ROOT.RooArgList(mhypVar, dmuFunc, massScaleNuisance)
+        else:
+            # no mass scale nuisance specified
+            formula = "@0 + @1"
+            args = ROOT.RooArgList(mhypVar, dmuFunc)
+
         muFunc = ROOT.RooFormulaVar(name, name,
-                                    "@0 + @1",
-                                    ROOT.RooArgList(mhypVar,
-                                                    dmuFunc)); gcs.append(muFunc)
+                                    formula,
+                                    args); gcs.append(muFunc)
 
         #----------
         # sigma
@@ -537,7 +549,7 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
 
 #----------------------------------------------------------------------
 
-def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
+def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisance):
     # simultaneous fit across multiple mass hypotheses
 
     mhypVars = []
@@ -657,9 +669,12 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
         ])
 
     pdfname = "sigpdf_" + suffix
-    
+
     finalPdf = makeGaussianSum(mhypVar, recoMassVar, None, mhypVar.getMin(), mhypVar.getMax(), coeffsDict,
-                               pdfname
+                               pdfname,
+
+                               massScaleNuisance = massScaleNuisance
+
                                ); gcs.append(finalPdf)
 
     # import this pdf into the workspace
@@ -778,15 +793,23 @@ else:
     allProcs = options.procs
 
 
+# nuisance parameters
+
+# mass scale nuisance parameter centered at 1 -> model this as lnN distributed nuisance
+massScaleNuisance = ROOT.RooRealVar("CMS_emu_scale",
+                                    "mass scale nuisance",
+                                    1, 0, 2)
+massScaleNuisance.setConstant(True)
+
 for cat in allCats:
     for proc in allProcs:
 
         if options.simultaneous:
-            doFitsSimultaneous(ws, mhypVar, massVar, cat, proc, allMasses)
+            doFitsSimultaneous(ws, mhypVar, massVar, cat, proc, allMasses, massScaleNuisance)
         else:
             # create the PDFs to be fitted first
             makeSignalPdfsForFit(ws, cat, proc, massVar, allMasses)
-            doFitsClassic(ws, mhypVar, massVar, cat, proc, allMasses)
+            doFitsClassic(ws, mhypVar, massVar, cat, proc, allMasses, massScaleNuisance)
 
     # end of loop over signal processes
 

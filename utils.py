@@ -181,7 +181,9 @@ def reassignValues(indices, rooRealVars):
 
 #----------------------------------------------------------------------
 
-def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fractionVars):
+def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fractionVars,
+                       massScaleNuisance = None, resolutionNuisance = None):
+    # produces a sum of Gaussians (for the non-simultaneous case)
     # mhypVar can be a float or int or a RooAbsReal
 
     import ROOT
@@ -197,9 +199,19 @@ def makeSumOfGaussians(pdfName, recoMassVar, mhypVar, deltaMuVars, sigmaVars, fr
         if isinstance(mhypVar, int) or isinstance(mhypVar, float):
             expr = "%f + @0" % mhypVar
             args = ROOT.RooArgList(deltaMuVars[i])
+
+            if massScaleNuisance != None:
+                expr = "(%s) * @1" % expr
+                args.add(massScaleNuisance)
+
         else:
             expr = "@0 + @1"
             args = ROOT.RooArgList(mhypVar, deltaMuVars[i])
+
+            if massScaleNuisance != None:
+                expr = "(%s) * @2" % expr
+                args.add(massScaleNuisance)
+
 
         meanVar = ROOT.RooFormulaVar(("mu_g%d_" % i) + pdfName,
                                      "mean Gaussian %d" % i,
