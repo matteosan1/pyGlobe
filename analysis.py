@@ -19,9 +19,6 @@ class Analysis:
         #self.wsProducer.finalize()
         self.wsProducer.setGlobalParameters(self.generalInfo[0])
 
-        # add signal PDFs for fitting
-        self.wsProducer.makeSignalPdfsForFit()
-        
         self.wsProducer.saveWS()
 
         self.counter.Print(self.samples)

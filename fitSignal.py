@@ -14,6 +14,59 @@ massVarName = "CMS_emu_mass"
 # name of Higgs mass hypothesis variable (created by this script)
 massHypName = "MH"
 
+
+# number of Gaussian components to fit an individual cat/proc/mass point
+numGaussians = 2
+
+#----------------------------------------------------------------------
+
+def makeSignalPdfsForFit(ws, catname, proc, recoMassVar, signalMasses):
+    # produces sum of Gaussian PDFs for fitting (i.e. without interpolation, independent
+    # at each mass point)
+
+    # assume we have all signal processes at all signal mass points
+
+    # signalMasses is assumed to be ordered
+    for massIndex, mhyp in enumerate(signalMasses):
+        suffix = "_".join([
+            proc,
+            str(mhyp),
+            catname,
+            ])
+
+        # create the delta mu and sigma vars
+        dmuvars = [ ROOT.RooRealVar(utils.makeGaussianVarname("dmu", proc, mhyp, catname, gaussIndex),
+                                    "delta mu",
+                                    gaussIndex,
+                                    -1.5,
+                                    +1.5)
+                    for gaussIndex in range(numGaussians)]
+        sigmavars = [ ROOT.RooRealVar(utils.makeGaussianVarname("sigma", proc, mhyp, catname, gaussIndex),
+                                    "sigma",
+                                    1 + gaussIndex,
+                                    0.01,
+                                    10)
+                    for gaussIndex in range(numGaussians)]
+
+        fractionvars = [ ROOT.RooRealVar(utils.makeGaussianVarname("frac", proc, mhyp, catname, gaussIndex),
+                                         "fraction variable for Gaussian sum",
+                                         0.5,
+                                         0,
+                                         1)
+                         for gaussIndex in range(numGaussians - 1)]
+
+        pdf = utils.makeSumOfGaussians("sigpdf_" + suffix,
+                                       recoMassVar,
+                                       mhyp,
+                                       dmuvars,
+                                       sigmavars,
+                                       fractionvars)
+
+        # import into workspace
+        if ws != None:
+            getattr(ws, 'import')(pdf, ROOT.RooFit.RecycleConflictNodes())
+    # end of loop over masses
+
 #----------------------------------------------------------------------
 
 def getGaussianVars(ws, varname, proc, mass, catname):
@@ -367,8 +420,6 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
     # we plug in the mass values explicitly during the fit to create a separate PDF for
     # each mass hypothesis
     #----------
-
-    numGaussians = 2
 
     # degree of polynomial for interpolation across mass hypotheses
     polynomialDegree = 2
@@ -735,6 +786,8 @@ for cat in allCats:
         if options.simultaneous:
             doFitsSimultaneous(ws, mhypVar, massVar, cat, proc, allMasses)
         else:
+            # create the PDFs to be fitted first
+            makeSignalPdfsForFit(ws, cat, proc, massVar, allMasses)
             doFitsClassic(ws, mhypVar, massVar, cat, proc, allMasses)
 
     # end of loop over signal processes
