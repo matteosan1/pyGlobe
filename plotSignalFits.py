@@ -38,7 +38,7 @@ def canvasToDataURIString(canv):
 
 #----------------------------------------------------------------------
 
-def plotSignalFitsVsMC(ws, recoMassVar, cat, proc, htmlout):
+def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneous):
 
     # produce one frame with all the mass hypotheses
     # for the comparison of signal fits to signal MC
@@ -47,6 +47,20 @@ def plotSignalFitsVsMC(ws, recoMassVar, cat, proc, htmlout):
     gcs.append(frame)
     gcs.append(ROOT.TCanvas())
 
+    if simultaneous:
+        # get the overall PDF (the per mass point PDFs are either not
+        # present or unfitted)
+        suffix = "_".join([
+            proc,
+            cat,
+            ])
+        pdfname = "sigpdf_" + suffix
+
+        pdf = utils.getObj(ws,pdfname)
+
+        normFunc = utils.getObj(ws, pdfname + "_norm")
+
+
     for mass in allMasses:
 
         # get the signal MC dataset
@@ -54,15 +68,29 @@ def plotSignalFitsVsMC(ws, recoMassVar, cat, proc, htmlout):
         dataset = utils.getObj(ws, "sig_Hem_unbinned_%s_%d_%s" % (proc, mass, cat))
 
         # get the signal pdf
-        # e.g. sigpdf_vbf_115_cat8
-        pdf = utils.getObj(ws, "sigpdf_%s_%d_%s" % (proc, mass, cat))
+        if simultaneous:
+            # just set the mass hypothesis variable
+            mhypVar.setVal(mass)
+        else:
+            # the fitted PDF, valid at this mass point only
+            # e.g. sigpdf_vbf_115_cat8
+            pdf = utils.getObj(ws, "sigpdf_%s_%d_%s" % (proc, mass, cat))
 
         # add to the plot
         dataset.plotOn(frame,
                        # ROOT.RooFit.Range(110,160)
                        )
+
+        normArg = ROOT.RooCmdArg()
+        if simultaneous:
+            # take the normalization from the norm function, NOT from the MC !
+            normArg = ROOT.RooFit.Normalization(normFunc.getVal(),
+                                                       ROOT.RooAbsReal.NumEvent)
+
+
         pdf.plotOn(frame,
                    # ROOT.RooFit.Range(110,160)
+                   normArg
                    )
 
     # end of loop over masses
@@ -358,7 +386,7 @@ for cat in allCats:
         #----------
         # plot signal fit vs. MC sample (signal)
         #----------
-        plotSignalFitsVsMC(ws, recoMassVar, cat, proc, htmlout)
+        plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, options.simultaneous)
 
         #----------
         # draw evolution of interpolated parameters vs. mass hypothesis
