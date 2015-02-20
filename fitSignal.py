@@ -185,8 +185,6 @@ def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses):
 
         numGaussians = len(sigmaVars)
 
-        print "ZZ",numGaussians,len(fracVars)
-
         assert numGaussians == len(dmuVars)
         assert numGaussians == len(fracVars) + 1
 
