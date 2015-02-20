@@ -19,6 +19,12 @@ massHypName = "MH"
 
 htmlOutputFname = "plots.html"
 
+# colors for MC vs. fit plots
+mcVsFitColors = [ 1, 2, 3, 4,
+                  # 5, # yellow
+                  6
+                  ]
+
 #----------------------------------------------------------------------
 
 def canvasToDataURIString(canv):
@@ -46,6 +52,8 @@ def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneou
     frame.SetTitle("signal fit vs. MC %s %s" % (cat, proc))
     gcs.append(frame)
     gcs.append(ROOT.TCanvas())
+
+    colorIndex = 0
 
     if simultaneous:
         # get the overall PDF (the per mass point PDFs are either not
@@ -76,9 +84,15 @@ def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneou
             # e.g. sigpdf_vbf_115_cat8
             pdf = utils.getObj(ws, "sigpdf_%s_%d_%s" % (proc, mass, cat))
 
+        #----------
+        thisColor = mcVsFitColors[colorIndex]
+        colorIndex = (colorIndex + 1) % len(mcVsFitColors)
+        #----------
+
         # add to the plot
         dataset.plotOn(frame,
-                       # ROOT.RooFit.Range(110,160)
+                       # ROOT.RooFit.Range(110,160),
+                       ROOT.RooFit.MarkerColor(thisColor),
                        )
 
         normArg = ROOT.RooCmdArg()
@@ -90,7 +104,8 @@ def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneou
 
         pdf.plotOn(frame,
                    # ROOT.RooFit.Range(110,160)
-                   normArg
+                   normArg,
+                   ROOT.RooFit.LineColor(thisColor),
                    )
 
     # end of loop over masses
