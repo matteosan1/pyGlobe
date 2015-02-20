@@ -287,7 +287,7 @@ def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses):
     normfunc = utils.makePiecewiseLinearFunction(pdfname + "_norm",
                                                  mhypVar,
                                                  allMasses,
-                                                 normValues); gcs.append(pdf)
+                                                 normValues); gcs.append(normfunc)
 
     # import this function into the workspace
     getattr(ws, 'import')(normfunc, ROOT.RooFit.RecycleConflictNodes())
@@ -497,6 +497,9 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
 
     mhypVars = []
 
+    # number of expected signal events
+    normValues = []
+
     # one 'category' per mass point for the simultaneous fit
     pdfsForSimultaneous = ROOT.RooArgList()
     catsForSimultaneous = ROOT.RooCategory("massPoint", "massPoint")
@@ -547,6 +550,8 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
         #----------
         # see https://root.cern.ch/phpBB3/viewtopic.php?f=15&t=16882
         ds = utils.getObj(ws, "sig_Hem_unbinned_%s_%d_%s" % (proc, mass, cat)); gcs.append(ds)
+
+        normValues.append(ds.sumEntries())
 
         datasetsForSimultaneous.append(ds)
 
@@ -610,10 +615,22 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
     
     finalPdf = makeGaussianSum(mhypVar, recoMassVar, None, mhypVar.getMin(), mhypVar.getMax(), coeffsDict,
                                pdfname
-                               )
+                               ); gcs.append(finalPdf)
 
     # import this pdf into the workspace
     getattr(ws, 'import')(finalPdf, ROOT.RooFit.RecycleConflictNodes())
+
+    #----------
+    # build the interpolated normalization function
+    #----------
+    normfunc = utils.makePiecewiseLinearFunction(pdfname + "_norm",
+                                                 mhypVar,
+                                                 allMasses,
+                                                 normValues); gcs.append(normfunc)
+
+    # import this function into the workspace
+    getattr(ws, 'import')(normfunc, ROOT.RooFit.RecycleConflictNodes())
+
 
 #----------------------------------------------------------------------
 # main
