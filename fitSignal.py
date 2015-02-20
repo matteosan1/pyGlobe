@@ -357,10 +357,12 @@ def makeBernsteinFormula(degree, formulaName, addMassToFormulaName, xmin, xmax, 
 
 #----------------------------------------------------------------------
 
-def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict):
+def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, finalName = None):
     # param massForName is the mass to be used in the name of the final
     # addPdf (this can be set to None to build the final PDF or a
     # given mass for the fitting stage)
+
+    addMassToFormulaName = (massForName != None)
 
     #----------
     # build the expressions for the base polynomials (Bernstein polynimials) for the parameter
@@ -396,7 +398,7 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict):
 
         dmuFunc = makeBernsteinFormula(polynomialDegree,
                                        name,
-                                       True,
+                                       addMassToFormulaName,
                                        xmin, xmax,
                                        -10,10, # y range
                                        mhypVar, coeffsDict); gcs.append(dmuFunc)
@@ -427,7 +429,7 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict):
 
         sigmaFunc = makeBernsteinFormula(polynomialDegree,
                                          name,
-                                         True,
+                                         addMassToFormulaName,
                                          xmin, xmax,
                                          0,10, # y range
                                          mhypVar, coeffsDict); gcs.append(sigmaFunc)
@@ -452,9 +454,16 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict):
         # create a weighting coefficient
         #----------
         if gaussIndex > 0:
+
+            name = utils.makeGaussianVarname("fracfunc",
+                                             proc,
+                                             None, # no mass, use common coefficients 
+                                             cat,
+                                             gaussIndex - 1)
+
             fracFunc = makeBernsteinFormula(polynomialDegree,
-                                            "fracfunc_f%d" % (gaussIndex - 1),
-                                            True,
+                                            name,
+                                            addMassToFormulaName,
                                             xmin, xmax,
                                             0,1, # y range
                                             mhypVar, coeffsDict); gcs.append(fracFunc)
@@ -466,13 +475,14 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict):
     #----------
     # build the RooAddPdf
     #----------
-    name = utils.makeGaussianVarname("addpdf",
-                                     proc,
-                                     massForName,
-                                     cat,
-                                     None)
+    if finalName == None:
+        finalName = utils.makeGaussianVarname("addpdf",
+                                         proc,
+                                         massForName,
+                                         cat,
+                                         None)
 
-    addPdf = ROOT.RooAddPdf(name, name,
+    addPdf = ROOT.RooAddPdf(finalName, finalName,
                             gaussianPdfs,
                             fractionsForGaussian); gcs.append(addPdf)
 
@@ -484,7 +494,6 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict):
 
 def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
     # simultaneous fit across multiple mass hypotheses
-
 
     mhypVars = []
 
@@ -564,7 +573,6 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
                                      cat,
                                      None # gauss index
                                      )
-
 
     # ugly hack, works as long as ew don't have too many mass points
     # (I could not get this here to work: https://root.cern.ch/phpBB3/viewtopic.php?f=15&t=16882 )
