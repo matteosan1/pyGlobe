@@ -6,10 +6,6 @@ import utils
 
 #----------------------------------------------------------------------
 
-inputFname = "workspace.root"
-
-outputFname = "workspace-sigfit.root"
-
 wsname = "CMS_emu_workspace"
 
 # name of reconstructed mass variable
@@ -635,20 +631,69 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses):
 #----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
-# script for fitting the signal models
+from optparse import OptionParser
+parser = OptionParser("""
 
-ARGV = sys.argv[1:]
+  usage: %prog [options] input_file output_file
 
-if ARGV:
+  program for fitting the signal models
+
+"""
+)
+
+parser.add_option("--simultaneous",
+                  default = False,
+                  action = "store_true",
+                  help="perform a simultaneous fit (across all mass hypotheses) instead of fitting per mass point",
+                  )
+
+parser.add_option("--cat",
+                  dest = "cats",
+                  type = str,
+                  default = None,
+                  help="comma separated list of category names (default is to use all found in the workspace)",
+                  )
+
+parser.add_option("--proc",
+                  dest = "procs",
+                  type = str,
+                  default = None,
+                  help="comma separated list of process names (default is to use all found in the workspace)",
+                  )
+
+parser.add_option("--param",
+                  type = str,
+                  default = None,
+                  help="name of a python file with parameter restrictions (non-simultaneous only for the moment)",
+                  )
+
+(options, ARGV) = parser.parse_args()
+
+if options.cats != None:
+    options.cats = options.cats.split(',')
+
+if options.procs != None:
+    options.procs = options.procs.split(',')
+
+if len(ARGV) != 2:
+    parser.print_help();
+    sys.exit(1)
+
+inputFname, outputFname = ARGV
+
+#----------------------------------------
+
+if options.param != None:
     # assume this is the name of a fit parameter settings file in python format
     import imp
-    configFname = ARGV.pop(0)
+    configFname = options.param
     parametersModule = imp.load_source('parameters', configFname)
 
     fitparams = parametersModule.params
 else:
     fitparams = {}
 
+#----------------------------------------
 
 import ROOT; gcs = []
 ROOT.gROOT.SetBatch(1)
@@ -671,15 +716,26 @@ mhypVar = ROOT.RooRealVar(massHypName, "Higgs mass hypothesis variable",
 
 
 # get the list of all categories
-allCats   = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
+if options.cats == None:
+    allCats   = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
+else:
+    allCats = options.cats
+
 allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
-allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
+
+if options.procs == None:
+    allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
+else:
+    allProcs = options.procs
+
 
 for cat in allCats:
     for proc in allProcs:
 
-        # doFitsClassic(ws, mhypVar, massVar, cat, proc, allMasses)
-        doFitsSimultaneous(ws, mhypVar, massVar, cat, proc, allMasses)
+        if options.simultaneous:
+            doFitsSimultaneous(ws, mhypVar, massVar, cat, proc, allMasses)
+        else:
+            doFitsClassic(ws, mhypVar, massVar, cat, proc, allMasses)
 
     # end of loop over signal processes
 
