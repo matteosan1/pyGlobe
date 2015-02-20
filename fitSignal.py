@@ -233,7 +233,7 @@ def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses):
                                          ("frac", fracValues, interpFracFuncs)):
 
         for gaussIndex in range(len(values)):
-            funcname = utils.makeGaussianVarname("interp_" + varname,
+            funcname = utils.makeGaussianVarname(varname + "func",
                                       proc,
                                       None, # mhyp
                                       cat,

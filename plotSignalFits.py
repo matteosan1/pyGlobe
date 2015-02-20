@@ -113,7 +113,7 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
         gcs.append(ROOT.TCanvas())
         
         for gaussIndex in itertools.count():
-            funcname = utils.makeGaussianVarname("interp_" + varname,
+            funcname = utils.makeGaussianVarname(varname + "func",
                                                  proc,
                                                  None, # mhyp
                                                  cat,
