@@ -93,6 +93,10 @@ def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneou
         dataset.plotOn(frame,
                        # ROOT.RooFit.Range(110,160),
                        ROOT.RooFit.MarkerColor(thisColor),
+
+                       # enforce poisson errors as if this were data
+                       # (otherwise RooFit uses SumW2(..) errors)
+                       ROOT.RooFit.DataError(ROOT.RooAbsData.Poisson),
                        )
 
         normArg = ROOT.RooCmdArg()
