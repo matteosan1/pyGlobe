@@ -211,6 +211,10 @@ def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisa
                   ROOT.RooFit.Minimizer("Minuit2"),
                   ROOT.RooFit.Range(mass + getFitParam(fitparams, "fitRangeLeft",  proc, mass, cat, - 5),
                                     mass + getFitParam(fitparams, "fitRangeRight", proc, mass, cat, +5)),
+
+                  # take MC statistics error, not error on number of events...
+                  ROOT.RooFit.SumW2Error(False),
+
                   )
 
         #----------
@@ -708,6 +712,9 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScale
                           ROOT.RooFit.Minimizer("Minuit2"),
                           # ROOT.RooFit.Range(mass + getFitParam(fitparams, "fitRangeLeft",  proc, mass, cat, - 5),
                           #mass + getFitParam(fitparams, "fitRangeRight", proc, mass, cat, +5)),
+
+                          # take MC statistics error, not error on number of events...
+                          ROOT.RooFit.SumW2Error(False),
                           )
 
     #----------
