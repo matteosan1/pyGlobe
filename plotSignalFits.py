@@ -19,11 +19,11 @@ massHypName = "MH"
 
 htmlOutputFname = "plots.html"
 
-# colors for MC vs. fit plots
-mcVsFitColors = [ 1, 2, 3, 4,
-                  # 5, # yellow
-                  6
-                  ]
+# colors for MC vs. fit plots and others
+plotColors = [ 1, 2, 3, 4,
+               # 5, # yellow
+               6
+               ]
 
 #----------------------------------------------------------------------
 
@@ -85,8 +85,8 @@ def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneou
             pdf = utils.getObj(ws, "sigpdf_%s_%d_%s" % (proc, mass, cat))
 
         #----------
-        thisColor = mcVsFitColors[colorIndex]
-        colorIndex = (colorIndex + 1) % len(mcVsFitColors)
+        thisColor = plotColors[colorIndex]
+        colorIndex = (colorIndex + 1) % len(plotColors)
         #----------
 
         # add to the plot
@@ -126,6 +126,8 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
         frame = mhypVar.frame(); gcs.append(frame)
         frame.SetTitle("%s %s %s" % (varname, cat, proc))
         gcs.append(ROOT.TCanvas())
+
+        colorIndex = 0
         
         for gaussIndex in itertools.count():
             funcname = utils.makeGaussianVarname(varname + "func",
@@ -142,12 +144,20 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
             if func == None:
                 break
 
+            #----------
+            thisColor = plotColors[colorIndex]
+            colorIndex = (colorIndex + 1) % len(plotColors)
+            #----------
+
             func.plotOn(frame,
                         # commented out since some normalization
                         # seems to be applied by RooFit when giving a range
                         # (which does not make sense since this is a function,
                         # not a PDF)
-                        # ROOT.RooFit.Range(minMass, maxMass)
+                        # ROOT.RooFit.Range(minMass, maxMass),
+
+                        ROOT.RooFit.LineColor(thisColor),
+
                         )
 
         # end of loop over Gaussian components
