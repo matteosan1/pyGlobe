@@ -328,15 +328,19 @@ print >> htmlout, "<h1>signal model plots for %s</h1><br/>" % inputFname
 print >> htmlout, '<table border="1"><tbody>'
 
 print >> htmlout, "<tr>"
-print >> htmlout, "<th>category</th>"
-print >> htmlout, "<th>mass</th>"
+print >> htmlout, '<th rowspan="2">category</th>'
+print >> htmlout, '<th rowspan="2">mass</th>'
 
 for proc in allProcs:
-    print >> htmlout, "<th>expected events %s</th>" % proc
-    print >> htmlout, "<th>MC events %s</th>" % proc
-    print >> htmlout, "<th>plots</th>"
-
+    print >> htmlout, '<th colspan="3">%s</th>' % proc
 print >> htmlout, "</tr>"
+
+print "<tr>"
+for proc in allProcs:
+    print >> htmlout, "<th>expected events</th>"
+    print >> htmlout, "<th>MC events</th>"
+    print >> htmlout, "<th>plots</th>"
+print "</tr>"
 
 for cat in allCats:
 
