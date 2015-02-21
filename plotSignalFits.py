@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, utils, itertools
+import sys, utils, itertools, math, array
 from utils import saveAllCanvases
 gcs = []
 
@@ -172,10 +172,9 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
 
     # end of loop over variables
 
-    #----------
-    # plot evolution of the normalization variable
-    # (which does NOT have Gaussian components)
-    #----------
+
+#----------------------------------------------------------------------
+def plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, mcMassPoints):
 
     # signal normalization function
     suffix = "_".join([
@@ -195,6 +194,55 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
                 # disabled (see above)
                 # ROOT.RooFit.Range(minMass, maxMass)
                 )
+
+    #----------
+    # add a graph with the actual MC normalizations using
+    # the relative errors obtained from MC statistics
+    #----------
+    numPoints = len(mcMassPoints)
+
+    # number of expected signal events
+    normValues = []
+    numMCevents = [] # for determining the error on the norm value
+
+    xerrs = []
+    yerrs = [] 
+
+    for mass in mcMassPoints:
+        ds = utils.getObj(ws, "sig_Hem_unbinned_%s_%d_%s" % (proc, mass, cat)); gcs.append(ds)
+
+        normValues.append(ds.sumEntries())
+        numMCevents.append(ds.numEntries())
+
+        xerrs.append(0)
+        yerrs.append(normValues[-1] / math.sqrt(numMCevents[-1]))
+
+    # build a TGraph which we can fit to a function
+    xerrs = [ 0.0 ] * numPoints
+
+    graph = ROOT.TGraphErrors(numPoints,
+                              array.array('f', mcMassPoints),
+                              array.array('f', normValues),
+                              array.array('f', xerrs),
+                              array.array('f', yerrs),
+                              ); gcs.append(graph)
+    graph.SetMarkerStyle(20)
+    graph.SetLineWidth(2)
+
+    # graph.GetMaximum() seems to return -1111 ?! Calculate it ourselves
+    graphYmax = max([ value + 1.5 * err for value, err in zip(normValues, yerrs)])
+
+    frame.addObject(graph,"P")
+    #----------
+
+    # make sure maximum y scale is taken into account properly
+
+    # print "MAXES:",frame.GetMaximum(),graph.GetMaximum()
+
+    frame.SetMaximum(max(
+        frame.GetMaximum(),
+        graphYmax))
+
     frame.Draw()
 
     if htmlout != None:
@@ -425,6 +473,12 @@ for cat in allCats:
         # draw evolution of interpolated parameters vs. mass hypothesis
         #----------
         plotParameterEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout)
+
+        #----------
+        # draw the normalization evolution
+        #----------
+        plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, allMasses)
+
 
         #----------
         # plot the interpolated signal PDFs at more values of mhyp
