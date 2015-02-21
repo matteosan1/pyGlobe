@@ -556,6 +556,56 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
 
 #----------------------------------------------------------------------
 
+def fitNormalizations(funcName, massHypVar, masses, normValues, numMCevents):
+    # this is used for fitting the normalization with a polynomial
+    # (only used for simulatenous fitting)
+    #
+    # we take 1 / sqrt(numMCevents) as a relative error
+
+    import array, math
+
+    numPoints = len(masses)
+    assert len(normValues) == numPoints
+    assert len(numMCevents) == numPoints
+
+    # build a TGraph which we can fit to a function
+    xerrs = [ 1.0 ] * numPoints
+    
+    yerrs = [ normVal / math.sqrt(events) for normVal, events in zip(normValues, numMCevents) ]
+
+    # use this instead of RooAbsReal::chi2FitTo(..)
+    # as it is not clear to me how the latter e.g.
+    # takes the errors on the y values...
+    graph = ROOT.TGraphErrors(numPoints,
+                              array.array('f', masses),
+                              array.array('f', normValues),
+                              array.array('f', xerrs),
+                              array.array('f', yerrs),
+                              )
+
+    # for some reason, can't directly specify the formula
+    # in TGraph.Fit(..), need to create a TF1 first...
+
+    func = ROOT.TF1("normfitfunc", "[0]+x*[1]+x*x*[2]", mhypVar.getMin(), mhypVar.getMax())
+
+    fitres = graph.Fit(func,
+                       "S" # save the result
+                       )
+
+    fitres2 = fitres.Get()
+
+    # create a RooFormulaVar with the fit result
+    return ROOT.RooFormulaVar(funcName, "fitted signal normalization",
+                              "%f + %f * @0 + %f * @0 * @0" % (
+                                  fitres2.Parameter(0),
+                                  fitres2.Parameter(1),
+                                  fitres2.Parameter(2),
+                                  ),
+                              ROOT.RooArgList(massHypVar))
+    
+
+#----------------------------------------------------------------------
+
 def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisance, resolutionNuisance):
     # simultaneous fit across multiple mass hypotheses
 
@@ -563,6 +613,7 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScale
 
     # number of expected signal events
     normValues = []
+    numMCevents = [] # for determining the error on the norm value
 
     # one 'category' per mass point for the simultaneous fit
     pdfsForSimultaneous = ROOT.RooArgList()
@@ -616,6 +667,7 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScale
         ds = utils.getObj(ws, "sig_Hem_unbinned_%s_%d_%s" % (proc, mass, cat)); gcs.append(ds)
 
         normValues.append(ds.sumEntries())
+        numMCevents.append(ds.numEntries())
 
         datasetsForSimultaneous.append(ds)
 
@@ -691,11 +743,19 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScale
     #----------
     # build the interpolated normalization function
     #----------
-    normfunc = utils.makePiecewiseLinearFunction(pdfname + "_norm",
-                                                 mhypVar,
-                                                 allMasses,
-                                                 normValues); gcs.append(normfunc)
+    if False:
+        normfunc = utils.makePiecewiseLinearFunction(pdfname + "_norm",
+                                                     mhypVar,
+                                                     allMasses,
+                                                     normValues); gcs.append(normfunc)
 
+    # do a fit of a polynomial to the normalization function values
+    normfunc = fitNormalizations(pdfname + "_norm",
+                                 mhypVar,
+                                 allMasses,
+                                 normValues,
+                                 numMCevents); gcs.append(normfunc)
+        
     # import this function into the workspace
     getattr(ws, 'import')(normfunc, ROOT.RooFit.RecycleConflictNodes())
 
