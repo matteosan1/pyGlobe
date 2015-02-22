@@ -102,6 +102,9 @@ def makePowerLaw(recoMassVar, prefix, order):
                                 0.9 - float(i-1) * 1./ nfracs,
                                 0.,1.); gcs.append(param)
         fracs.add(param)
+
+    # RooPower is a CMSSW class, not in RooFit
+    ROOT.gSystem.Load("$CMSSW_BASE/lib/$SCRAM_ARCH/libHiggsAnalysisCombinedLimit.so")
     
     for i in range(1, npows + 1):
 
