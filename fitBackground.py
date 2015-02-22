@@ -120,7 +120,7 @@ def makePowerLaw(recoMassVar, prefix, order):
                                 -10.,0. # range
                                 ); gcs.append(param)
 
-        func = ROOT.RooPower(ename, ename, obs_var, param)
+        func = ROOT.RooPower(ename, ename, recoMassVar, param)
         gcs.append(func)
         pows.add(func);
 
