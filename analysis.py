@@ -1,4 +1,7 @@
+#!/usr/bin/env python
 import ROOT
+ROOT.gROOT.SetBatch(1)
+
 from helpers import getEMuPair, emuSelectionV3Simplified, emuSelectionV3SimplifiedN_1ET1, emuSelectionV3SimplifiedN_1ET2, emuSelectionV3SimplifiedN_1NJETS,emuSelectionV3SimplifiedN_1MET, emuSelectionV3SimplifiedN_1ID, emuSelectionV3SimplifiedN_1ISO, emuSelectionV3SimplifiedN_1BTAG
 from  makeWS import WSProducer
 import plotfromoptree, table
