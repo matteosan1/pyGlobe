@@ -397,12 +397,12 @@ for proc in allProcs:
     print >> htmlout, '<th colspan="3">%s</th>' % proc
 print >> htmlout, "</tr>"
 
-print "<tr>"
+print >> htmlout, "<tr>"
 for proc in allProcs:
     print >> htmlout, "<th>expected events</th>"
     print >> htmlout, "<th>MC events</th>"
     print >> htmlout, "<th>plots</th>"
-print "</tr>"
+print >> htmlout, "</tr>"
 
 for cat in allCats:
 
