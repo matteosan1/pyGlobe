@@ -3,6 +3,7 @@
 # calculates the impact of shifting the jet energy scale
 import sys
 import utils
+from pprint import pprint
 
 #----------------------------------------------------------------------
 wsname = "CMS_emu_workspace"
@@ -115,5 +116,7 @@ for proc in allProcs:
 
     print "%-3s" % proc," ".join(parts)
 
+print
+pprint(relDeviations)
     
         
