@@ -129,12 +129,14 @@ def makePowerLaw(recoMassVar, prefix, order):
 
 #----------------------------------------------------------------------
 
-def addBackgroundFunction(ws, recoMassVar, cat, bgfuncName):
+def addBackgroundFunction(ws, recoMassVar, cat, bgfuncName, pdfName = None):
 
-    funcName = "_".join(
-        ["bgfunc",
-         bgfuncName,
-         cat])
+    if pdfName == None:
+        # not specified, create our own
+        pdfName = "_".join(
+            ["bgfunc",
+             bgfuncName,
+             cat])
 
     # determine the type
     mo = re.match("(\S+)(\d+)$", bgfuncName)
@@ -147,17 +149,17 @@ def addBackgroundFunction(ws, recoMassVar, cat, bgfuncName):
 
     if name == 'pol':
         # Bernstein polynomials
-        bgfunc = makeBernstein(recoMassVar, funcName, order)
+        bgfunc = makeBernstein(recoMassVar, pdfName, order)
 
     elif name == 'exp':
         # exponenial function
-        bgfunc = makeExponential(recoMassVar, funcName, order)
+        bgfunc = makeExponential(recoMassVar, pdfName, order)
 
     elif name == 'pow':
         # power law
         # note that we use RooPower, a class which is
         # part of CMSSW, not RooFit
-        bgfunc = makePowerLaw(recoMassVar, funcName, order)
+        bgfunc = makePowerLaw(recoMassVar, pdfName, order)
         
     else:
         raise Exception("unsupported background function type '%s'" % name)
@@ -236,7 +238,7 @@ allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses
 for cat in allCats:
 
     # create the function
-    bgpdf = addBackgroundFunction(ws, recoMassVar, cat, bgfuncs[cat])
+    bgpdf = addBackgroundFunction(ws, recoMassVar, cat, bgfuncs[cat], "pdf_bkg_" + cat)
 
     pdfname = bgpdf.GetName()
 
