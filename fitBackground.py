@@ -163,7 +163,8 @@ def addBackgroundFunction(ws, recoMassVar, cat, bgfuncName):
         raise Exception("unsupported background function type '%s'" % name)
 
     gcs.append(bgfunc)
-    getattr(ws,'import')(bgfunc, ROOT.RooFit.RecycleConflictNodes())
+    # do NOT import the pdf here before fitting (otherwise we'll
+    # get the initial values)
 
     return bgfunc
 
@@ -255,10 +256,10 @@ for cat in allCats:
                  ROOT.RooFit.Minimizer("Minuit2"),
                  )
 
+    # import these AFTER fitting
+    getattr(ws, 'import')(bgpdf, ROOT.RooFit.RecycleConflictNodes())
     getattr(ws, 'import')(normFunc, ROOT.RooFit.RecycleConflictNodes())
 
-
-    
 
 
 # end of loop over categories
