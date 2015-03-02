@@ -349,7 +349,7 @@ def doFitsClassic(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisa
 
 #----------------------------------------------------------------------
 
-def makeBernsteinFormula(degree, formulaName, addMassToFormulaName, xmin, xmax, ymin, ymax, massHypVar, coeffsDict):
+def makeBernsteinFormula(degree, formulaName, addMassToFormulaName, xmin, xmax, ymin, ymax, massHypVar, coeffsDict, setCoeffsConstant):
     # if coeffsDict is not None, parameters are first searched for there (by name)
     # and if not existing, created parameters will be added there 
     #
@@ -388,6 +388,9 @@ def makeBernsteinFormula(degree, formulaName, addMassToFormulaName, xmin, xmax, 
 
             if coeffsDict != None:
                 coeffsDict[name] = coeff
+
+        if setCoeffsConstant:
+            coeff.setConstant(True)
             
         args.add(coeff)
 
@@ -412,7 +415,7 @@ def makeBernsteinFormula(degree, formulaName, addMassToFormulaName, xmin, xmax, 
 #----------------------------------------------------------------------
 
 def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, finalName = None,
-                    massScaleNuisance = None, resolutionNuisance = None):
+                    massScaleNuisance = None, resolutionNuisance = None, setCoeffsConstant = False):
     # produces a sum of Gaussians (for the simultaneous case, similar to utils.makeSumOfGaussians(..) )
     # 
     # param massForName is the mass to be used in the name of the final
@@ -456,7 +459,7 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
                                        addMassToFormulaName,
                                        xmin, xmax,
                                        -10,10, # y range
-                                       mhypVar, coeffsDict); gcs.append(dmuFunc)
+                                       mhypVar, coeffsDict, setCoeffsConstant); gcs.append(dmuFunc)
 
         #----------
         # build mu from delta mu
@@ -494,7 +497,7 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
                                          addMassToFormulaName,
                                          xmin, xmax,
                                          0,10, # y range
-                                         mhypVar, coeffsDict); gcs.append(sigmaFunc)
+                                         mhypVar, coeffsDict, setCoeffsConstant); gcs.append(sigmaFunc)
 
         if resolutionNuisance != None:
             sigmaFunc = ROOT.RooFormulaVar("nuisancedSigmaFunc" + name[9:],
@@ -534,7 +537,7 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
                                             addMassToFormulaName,
                                             xmin, xmax,
                                             0,1, # y range
-                                            mhypVar, coeffsDict); gcs.append(fracFunc)
+                                            mhypVar, coeffsDict, setCoeffsConstant); gcs.append(fracFunc)
 
             fractionsForGaussian.add(fracFunc)
 
@@ -736,11 +739,18 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScale
 
     pdfname = "sigpdf_" + suffix
 
+    # after fitting, make nuisances non-constant
+    massScaleNuisance.setConstant(False)
+    resolutionNuisance.setConstant(False)
+
     finalPdf = makeGaussianSum(mhypVar, recoMassVar, None, mhypVar.getMin(), mhypVar.getMax(), coeffsDict,
                                pdfname,
 
                                massScaleNuisance = massScaleNuisance,
                                resolutionNuisance = resolutionNuisance,
+
+                               # set the coefficients of the polynomial constant now (otherwise combine will move them around..)
+                               setCoeffsConstant = True,
 
                                ); gcs.append(finalPdf)
 
@@ -869,6 +879,7 @@ else:
 
 
 # nuisance parameters
+nuisanceVars = []
 
 #----------
 # mass scale nuisance parameter centered at 1 -> model this as lnN distributed nuisance
@@ -877,6 +888,7 @@ massScaleNuisance = ROOT.RooRealVar("CMS_emu_scale",
                                     "mass scale nuisance",
                                     1, 0, 2)
 massScaleNuisance.setConstant(True)
+nuisanceVars.append(massScaleNuisance)
 
 #----------
 # resolution nuisance
@@ -885,6 +897,7 @@ resolutionNuisance = ROOT.RooRealVar("CMS_emu_reso",
                                     "mass resolution nuisance",
                                     1, 0, 2)
 resolutionNuisance.setConstant(True)
+nuisanceVars.append(resolutionNuisance)
 
 #----------
 for cat in allCats:
@@ -900,6 +913,12 @@ for cat in allCats:
     # end of loop over signal processes
 
 # end of loop over categories
+
+
+# set nuisance parameters non-constant after fit
+for nuisanceVar in nuisanceVars:
+    nuisanceVar.setConstant(False)
+
                              
 # write the fitted workspace out
 ws.writeToFile(outputFname)
