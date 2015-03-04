@@ -41,24 +41,14 @@ assert ws != None, "could not find workspace '%s' in file '%s'" % (wsname, input
 
 origPdf = utils.getObj(ws, "sigpdf_ggh_cat9")
 
-# find all leaf nodes
-leaves = ROOT.RooArgList()
-origPdf.leafNodeServerList(leaves)
+# loop over leaf nodes
 
-seen = set()
-
-for i in range(leaves.getSize()):
-    leaf = leaves[i]
+for leaf in utils.getLeafNodes(origPdf):
 
     name = leaf.GetName()
 
     if not 'ggh_cat9' in name:
         continue
-
-    if name in seen:
-        continue
-
-    seen.add(name)
 
     # print leaf
 

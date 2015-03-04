@@ -259,3 +259,34 @@ def saveAllCanvases(suffix = "png"):
         canv.SaveAs("plot-%02d.%s" % (i, suffix))
 
 #----------------------------------------------------------------------
+
+def getLeafNodes(pdf):
+
+    import ROOT
+
+    retval = []
+
+    # note that this is a list and we may
+    # encounter nodes more than once
+    # (it is more complicated to convert
+    # a RooArgSet to a python list)
+
+    leaves = ROOT.RooArgList()
+    pdf.leafNodeServerList(leaves)
+
+    seen = set()
+    
+    for i in range(leaves.getSize()):
+        leaf = leaves[i]
+        
+        name = leaf.GetName()
+        
+        if name in seen:
+            continue
+
+        retval.append(leaf)
+
+    return retval
+
+
+#----------------------------------------------------------------------
