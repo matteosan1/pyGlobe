@@ -44,7 +44,7 @@ def canvasToDataURIString(canv):
 
 #----------------------------------------------------------------------
 
-def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneous):
+def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneous, signalScaling):
 
     # produce one frame with all the mass hypotheses
     # for the comparison of signal fits to signal MC
@@ -102,7 +102,7 @@ def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneou
         normArg = ROOT.RooCmdArg()
         if simultaneous:
             # take the normalization from the norm function, NOT from the MC !
-            normArg = ROOT.RooFit.Normalization(normFunc.getVal(),
+            normArg = ROOT.RooFit.Normalization(normFunc.getVal() * signalScaling,
                                                        ROOT.RooAbsReal.NumEvent)
 
 
@@ -174,7 +174,7 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
 
 
 #----------------------------------------------------------------------
-def plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, mcMassPoints):
+def plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, mcMassPoints, signalScaling):
 
     # signal normalization function
     suffix = "_".join([
@@ -189,6 +189,17 @@ def plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassF
     frame = mhypVar.frame(); gcs.append(frame)
     frame.SetTitle("signal normalization %s %s" % (cat, proc))
     gcs.append(ROOT.TCanvas())
+
+    if signalScaling != 1:
+        # build an intermediate function to draw the scaled
+        # normalization
+        gcs.append(func)
+        func = ROOT.RooFormulaVar(func.GetName() + "_scaled",
+                                  func.GetName() + "_scaled",
+                                  "%f * @0" % signalScaling,
+                                  ROOT.RooArgList(func)); gcs.append(func)
+
+
 
     func.plotOn(frame,
                 # disabled (see above)
@@ -318,6 +329,13 @@ parser.add_option("--cat",
                   help="comma separated list of category names (default is to use all found in the workspace)",
                   )
 
+parser.add_option("--scale",
+                  dest = "signalScaling",
+                  type = float,
+                  default = 1,
+                  help="factor to scale the signal with, only for the comparison with MC (useful when the signal has been scaled w.r.t the input MC events)",
+                  )
+
 parser.add_option("--proc",
                   dest = "procs",
                   type = str,
@@ -332,6 +350,10 @@ if options.cats != None:
 
 if options.procs != None:
     options.procs = options.procs.split(',')
+
+if not options.simultaneous and options.signalScaling != 1:
+    print >> "--scale is currently only supported with --simultaneous"
+    sys.exit(1)
 
 #----------------------------------------
 
@@ -470,7 +492,7 @@ for cat in allCats:
         #----------
         # plot signal fit vs. MC sample (signal)
         #----------
-        plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, options.simultaneous)
+        plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, options.simultaneous, options.signalScaling)
 
         #----------
         # draw evolution of interpolated parameters vs. mass hypothesis
@@ -478,9 +500,9 @@ for cat in allCats:
         plotParameterEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout)
 
         #----------
-        # draw the normalization evolution
+        # draw the normalization evolution (and comparison to MC normalization)
         #----------
-        plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, allMasses)
+        plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, allMasses, options.signalScaling)
 
 
         #----------
