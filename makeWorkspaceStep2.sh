@@ -8,7 +8,7 @@ set -e
 # ./pyGlobe.py -i ../data/emu_merged_v8.root -o emu_output_v5.root --wsout workspace-raw-unblinded.root
 
 # build the signal model
-./fitSignal.py --simultaneous workspace-raw-unblinded.root /tmp/ws2.root
+./fitSignal.py --simultaneous --scalesig 0.01 workspace-raw-unblinded.root /tmp/ws2.root
 
 # fix the signal model
 ./fixSignalModel.py /tmp/ws2.root /tmp/ws3.root 
