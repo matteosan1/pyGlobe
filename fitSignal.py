@@ -563,11 +563,14 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
 
 #----------------------------------------------------------------------
 
-def fitNormalizations(funcName, massHypVar, masses, normValues, numMCevents):
+def fitNormalizations(funcName, massHypVar, masses, normValues, numMCevents, scaleFactor):
     # this is used for fitting the normalization with a polynomial
     # (only used for simulatenous fitting)
     #
     # we take 1 / sqrt(numMCevents) as a relative error
+    #
+    # scaleFactor is a factor to change the signal normlaization (e.g. to make combine
+    # work better)
 
     import array, math
 
@@ -603,7 +606,8 @@ def fitNormalizations(funcName, massHypVar, masses, normValues, numMCevents):
 
     # create a RooFormulaVar with the fit result
     return ROOT.RooFormulaVar(funcName, "fitted signal normalization",
-                              "%f + %f * @0 + %f * @0 * @0" % (
+                              "%f * (%f %+f * @0 %+f * @0 * @0)" % (
+                                  scaleFactor,
                                   fitres2.Parameter(0),
                                   fitres2.Parameter(1),
                                   fitres2.Parameter(2),
@@ -613,7 +617,7 @@ def fitNormalizations(funcName, massHypVar, masses, normValues, numMCevents):
 
 #----------------------------------------------------------------------
 
-def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisance, resolutionNuisance):
+def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScaleNuisance, resolutionNuisance, sigScaling):
     # simultaneous fit across multiple mass hypotheses
 
     mhypVars = []
@@ -771,11 +775,12 @@ def doFitsSimultaneous(ws, mhypVar, recoMassVar, cat, proc, allMasses, massScale
                                  mhypVar,
                                  allMasses,
                                  normValues,
-                                 numMCevents); gcs.append(normfunc)
+                                 numMCevents,
+                                 sigScaling,
+                                 ); gcs.append(normfunc)
         
     # import this function into the workspace
     getattr(ws, 'import')(normfunc, ROOT.RooFit.RecycleConflictNodes())
-
 
 #----------------------------------------------------------------------
 # main
@@ -816,6 +821,12 @@ parser.add_option("--param",
                   help="name of a python file with parameter restrictions (non-simultaneous only for the moment)",
                   )
 
+parser.add_option("--scalesig",
+                  type = float,
+                  default = 1,
+                  help="scale signal by the given factor (e.g. to get better convergence in combine)",
+                  )
+
 (options, ARGV) = parser.parse_args()
 
 if options.cats != None:
@@ -823,6 +834,10 @@ if options.cats != None:
 
 if options.procs != None:
     options.procs = options.procs.split(',')
+
+if options.param != None and options.simultaneous:
+    print >> "--param is not supported with --simultaneous at the moment"
+    sys.exit(1)
 
 if len(ARGV) != 2:
     parser.print_help();
@@ -904,7 +919,7 @@ for cat in allCats:
     for proc in allProcs:
 
         if options.simultaneous:
-            doFitsSimultaneous(ws, mhypVar, massVar, cat, proc, allMasses, massScaleNuisance, resolutionNuisance)
+            doFitsSimultaneous(ws, mhypVar, massVar, cat, proc, allMasses, massScaleNuisance, resolutionNuisance, options.scalesig)
         else:
             # create the PDFs to be fitted first
             makeSignalPdfsForFit(ws, cat, proc, massVar, allMasses)
