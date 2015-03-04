@@ -878,6 +878,10 @@ mhypVar = ROOT.RooRealVar(massHypName, "Higgs mass hypothesis variable",
                           massVar.getMin(),
                           massVar.getMax())
 
+# important: avoid moving around the mass hypothesis variable during
+# fits in combine
+mhypVar.setConstant(True)
+
 
 # get the list of all categories
 if options.cats == None:
