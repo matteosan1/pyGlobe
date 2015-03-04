@@ -345,6 +345,9 @@ inputFname = ARGV.pop(0)
 import ROOT 
 ROOT.gROOT.SetBatch(True)
 
+# must load this library to have RooPower (otherwise we get a SIGSEGV)
+ROOT.gSystem.Load("$CMSSW_BASE/lib/$SCRAM_ARCH/libHiggsAnalysisCombinedLimit.so")
+
 fin = ROOT.TFile(inputFname)
 assert fin.IsOpen(), "could not open input workspace file " + inputFname
 
