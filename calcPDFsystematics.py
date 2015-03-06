@@ -12,6 +12,14 @@ wsname = "CMS_emu_workspace"
 # determine the systematics at one mass point only
 mass = 125
 
+# whether or not to normalize the relative deviations
+# such that the total number of expected
+# events stays the same. This should be done if one
+# includes pdf uncertainties on the cross sections
+# in addition in combine, otherwise the
+# pdf (normalization) uncertainty is double counted
+averageDeviations = True
+
 #----------------------------------------------------------------------
 
 #----------------------------------------------------------------------
@@ -125,6 +133,22 @@ print "found",pdfNums,"pdf directions"
 relDeviations = {}
 
 for proc in allProcs:
+
+    #----------
+    # calculate sum of events over all categories
+    #----------
+
+    sumEventsUp = {}
+    sumEventsDown = {}
+
+    for pdfNum in pdfNums:
+        sumEventsUp[pdfNum]   = sum([numSigEvents['up'   + pdfNum][cat][proc] for cat in allCats])
+        sumEventsDown[pdfNum] = sum([numSigEvents['down' + pdfNum][cat][proc] for cat in allCats])
+
+    sumEventsCentral = sum([numSigEvents['central'][cat][proc] for cat in allCats])
+
+    #----------
+    
     for cat in allCats:
 
         nom = numSigEvents['central'][cat][proc]
@@ -134,6 +158,11 @@ for proc in allProcs:
         for pdfNum in pdfNums:
             up = numSigEvents['up' + pdfNum][cat][proc]
             down = numSigEvents['down' + pdfNum][cat][proc]
+
+            if averageDeviations:
+                # take out any average change in normalization
+                up   *= sumEventsCentral / float(sumEventsUp[pdfNum])
+                down *= sumEventsCentral / float(sumEventsDown[pdfNum])
 
             # check that up and down are on opposite sides of nominal
 
