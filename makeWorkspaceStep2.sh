@@ -14,7 +14,7 @@ set -e
 ./fixSignalModel.py /tmp/ws2.root /tmp/ws3.root 
 
 # build the background model (needs RooPower from CMSSW, so done as last step)
-./fitBackground.py parameters/bgfunc.py /tmp/ws3.root workspace-nominal-nonblind.root
+./fitBackground.py parameters/bgfunc-cat6mod.py /tmp/ws3.root workspace-nominal-nonblind.root
 
 # make plots
 ./plotSignalFits.py --simultaneous --scale 100 workspace-nominal-nonblind.root
