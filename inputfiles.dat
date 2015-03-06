@@ -36,6 +36,9 @@ typ=-330 Nam=Hem_vbf_130 kfac=1. xsec=0.1511 scal=1. Dir=/hadoop/cms/store/user/
 typ=-340 Nam=Hem_vbf_140 kfac=1. xsec=0.1389 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204091644_Hem_vbf_140
 typ=-350 Nam=Hem_vbf_150 kfac=1. xsec=0.1280 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204092012_Hem_vbf_150
 
+typ=-425 Nam=Hem_ggh_125 kfac=1. xsec=1.927  scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204085550_Hem_ggh_125
+typ=-525 Nam=Hem_vbf_125 kfac=1. xsec=0.1578 scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20141204091120_Hem_vbf_125
+
 typ=0 Nam=Data kfac=1. xsec=1. scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140912054426_MuEG_Run2012A
 typ=0 Nam=Data kfac=1. xsec=1. scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140912055112_MuEG_Run2012B
 typ=0 Nam=Data kfac=1. xsec=1. scal=1. Dir=/hadoop/cms/store/user/matteo/reduced/20140912055539_MuEG_Run2012C
