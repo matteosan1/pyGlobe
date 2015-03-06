@@ -234,6 +234,11 @@ else:
 
 allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
 
+# this can be used for combine to let the background parameters
+# float while keeping other nuisances fixed
+bgParamsSet = ROOT.RooArgSet(); gcs.append(bgParamsSet)
+
+
 #----------
 for cat in allCats:
 
@@ -262,9 +267,24 @@ for cat in allCats:
     getattr(ws, 'import')(bgpdf, ROOT.RooFit.RecycleConflictNodes())
     getattr(ws, 'import')(normFunc, ROOT.RooFit.RecycleConflictNodes())
 
+    # add the parameters of the background functions to the corresponding set
+    # note that this does NOT depend on the Higgs mass hypothesis variable MH
+    # but we have to exclude the reconstructed mass variable 'CMS_emu_mass'
+    for leaf in utils.getLeafNodes(bgpdf):
+        if leaf.GetName() == massVarName:
+            continue
+
+        bgParamsSet.add(leaf)
+
+    # also add the normalization variable
+    bgParamsSet.add(normFunc)
+
 
 
 # end of loop over categories
+
+# import that set of background parameters to the workspace
+ws.defineSet("group_bgparams", bgParamsSet)
                              
 # write the fitted workspace out
 ws.writeToFile(outputFname)
