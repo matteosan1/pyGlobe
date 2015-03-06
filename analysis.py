@@ -12,6 +12,9 @@ class Analysis:
         self.counter = []
         self.generalInfo = []
 
+        # DEBUG
+        self.sumWeights = 0
+
     def Run(self):
         self.initialize()
         self.loadTree()
@@ -226,6 +229,21 @@ class Analysis:
             #self.counter.Fill(0, itype, cats[p], weight)
             self.counter.Fill(0, itype, cats[p], 1)
 
+            #----------
+            # DEBUG: check if this would be different with no veto on btag
+            #----------
+            wsCats = cats[p]*3 + njets20
+            if (njets20 >= 2):
+                wsCats = cats[p]*3 + 2
+            if (vbfcats[p] != -1):
+                wsCats = 8 + vbfcats[p]
+
+            ### if emuSelectionV3Simplified(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20) != \
+            ###        emuSelectionV3Simplified(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, -9999.0, -9999.0, njets20):
+            ###     print "DIFFERENCE cat=",wsCats
+
+            #----------
+
             #if (emuSelectionV2(cats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
             if (emuSelectionV3Simplified(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
                 plotcat = cats[p] 
@@ -240,6 +258,25 @@ class Analysis:
                     wsCats = cats[p]*3 + 2
                 if (vbfcats[p] != -1):
                     wsCats = 8 + vbfcats[p]
+
+                # DEBUG
+                if wsCats == 0 and itype == -225:
+                    if not hasattr(self, 'maxbtag1'):
+                        self.maxbtag1 = -9999.
+                    if not hasattr(self, 'maxbtag2'):
+                        self.maxbtag2 = -9999.
+
+                    if btag1 > self.maxbtag1:
+                        self.maxbtag1 = btag1
+                        print "MAX btag1:",self.maxbtag1
+                    if btag2 > self.maxbtag2:
+                        self.maxbtag2 = btag2
+                        print "MAX btag2:",self.maxbtag2
+
+
+                if wsCats == 0 and itype == -225:
+                    self.sumWeights += weight
+                    print "self.sumWeights=",self.sumWeights
                 self.wsProducer.fillDataset(itype, wsCats, masses[p], weight)
             
             #print "cat:",cats[p]
