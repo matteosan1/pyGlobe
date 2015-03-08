@@ -181,6 +181,16 @@ class Analysis:
         if (p == -1):
             return
 
+        #----------
+        # 2015-03-06 trying tighter cuts on the leptons
+        #----------
+
+        if min(et1[p], et2[p]) < 25:
+            return
+        if max(et1[p], et2[p]) < 35:
+            return
+
+        #----------
 
         if (masses[p] > 20. and masses[p] < 200.):    
             if (emuSelectionV3SimplifiedN_1NJETS(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
