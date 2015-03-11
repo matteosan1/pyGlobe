@@ -27,10 +27,10 @@ plotColors = [ 1, 2, 3, 4,
 
 #----------------------------------------------------------------------
 
-def canvasToDataURIString(canv):
+def canvasToDataURIString(canv, suffix = ".png"):
 
     import tempfile
-    fout = tempfile.NamedTemporaryFile(suffix = ".png")
+    fout = tempfile.NamedTemporaryFile(suffix = suffix)
 
     canv.SaveAs(fout.name)
 
@@ -40,11 +40,24 @@ def canvasToDataURIString(canv):
 
     fout.close()
 
-    return "data:image/png;base64," + data.encode('base64').replace('\n','')
+    # determine the mime type
+    if suffix == '.pdf':
+        mimeType = 'application/pdf'
+    else:
+        mimeType = "image/" + suffix[1:]
+
+    return "data:" + mimeType + ";base64," + data.encode('base64').replace('\n','')
 
 #----------------------------------------------------------------------
 
-def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneous, signalScaling):
+def addOtherPlotFormats(canvas, htmlout, additionalPlotFormats):
+    for format in additionalPlotFormats:
+        print >> htmlout, '<a href="%s">%s</a>' % (canvasToDataURIString(canvas, "." + format), format)
+
+
+#----------------------------------------------------------------------
+
+def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneous, signalScaling, additionalPlotFormats):
 
     # produce one frame with all the mass hypotheses
     # for the comparison of signal fits to signal MC
@@ -118,9 +131,11 @@ def plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, simultaneou
     if htmlout != None:
         print >> htmlout, '<img src="%s" />' % canvasToDataURIString(ROOT.gPad)
 
+        addOtherPlotFormats(ROOT.gPad, htmlout, additionalPlotFormats)
+
 #----------------------------------------------------------------------
 
-def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
+def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout, additionalPlotFormats):
 
     for varname in ("sigma", "dmu", "frac"):
 
@@ -170,11 +185,12 @@ def plotParameterEvolution(ws, mhypVar, cat, proc, minMass, maxMass, htmlout):
         if htmlout != None:
             print >> htmlout, '<img src="%s" />' % canvasToDataURIString(ROOT.gPad)
 
+            addOtherPlotFormats(ROOT.gPad, htmlout, additionalPlotFormats)
     # end of loop over variables
 
 
 #----------------------------------------------------------------------
-def plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, mcMassPoints, signalScaling):
+def plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, mcMassPoints, signalScaling, additionalPlotFormats):
 
     # signal normalization function
     suffix = "_".join([
@@ -258,10 +274,10 @@ def plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassF
 
     if htmlout != None:
         print >> htmlout, '<img src="%s" />' % canvasToDataURIString(ROOT.gPad)
-
+        addOtherPlotFormats(ROOT.gPad, htmlout, additionalPlotFormats)
 #----------------------------------------------------------------------
 
-def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, minMass, maxMass, htmlout):
+def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, minMass, maxMass, htmlout, additionalPlotFormats):
 
     numPoints = 21
 
@@ -303,6 +319,7 @@ def plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, minMass, maxMass, h
 
     if htmlout != None:
         print >> htmlout, '<img src="%s" />' % canvasToDataURIString(ROOT.gPad)
+        addOtherPlotFormats(ROOT.gPad, htmlout, additionalPlotFormats)
 
 #----------------------------------------------------------------------
 # main
@@ -343,6 +360,13 @@ parser.add_option("--proc",
                   help="comma separated list of process names (default is to use all found in the workspace)",
                   )
 
+parser.add_option("--add-plot-formats",
+                  dest = "additionalPlotFormats",
+                  type = str,
+                  default = None,
+                  help="comma separated list of file name extensions to be added for the plots as downloadable links",
+                  )
+
 (options, ARGV) = parser.parse_args()
 
 if options.cats != None:
@@ -350,6 +374,11 @@ if options.cats != None:
 
 if options.procs != None:
     options.procs = options.procs.split(',')
+
+if options.additionalPlotFormats != None:
+    options.additionalPlotFormats = options.additionalPlotFormats.split(',')
+else:
+    options.additionalPlotFormats = []
 
 if not options.simultaneous and options.signalScaling != 1:
     print >> "--scale is currently only supported with --simultaneous"
@@ -492,23 +521,23 @@ for cat in allCats:
         #----------
         # plot signal fit vs. MC sample (signal)
         #----------
-        plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, options.simultaneous, options.signalScaling)
+        plotSignalFitsVsMC(ws, mhypVar, recoMassVar, cat, proc, htmlout, options.simultaneous, options.signalScaling, options.additionalPlotFormats)
 
         #----------
         # draw evolution of interpolated parameters vs. mass hypothesis
         #----------
-        plotParameterEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout)
+        plotParameterEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, options.additionalPlotFormats)
 
         #----------
         # draw the normalization evolution (and comparison to MC normalization)
         #----------
-        plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, allMasses, options.signalScaling)
+        plotNormalizationEvolution(ws, mhypVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, allMasses, options.signalScaling, options.additionalPlotFormats)
 
 
         #----------
         # plot the interpolated signal PDFs at more values of mhyp
         #----------
-        plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout)
+        plotInterpolatedPdf(ws, mhypVar, recoMassVar, cat, proc, minMassForPlots, maxMassForPlots, htmlout, options.additionalPlotFormats)
 
         print >> htmlout, "<hr/><br/>"
 
