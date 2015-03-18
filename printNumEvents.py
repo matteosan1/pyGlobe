@@ -49,6 +49,12 @@ parser.add_option("--proc",
                   help="comma separated list of process names (default is to use all found in the workspace)",
                   )
 
+parser.add_option("--obs",
+                  default = False,
+                  action = "store_true",
+                  help="also print the number of observed events",
+                  )
+
 (options, ARGV) = parser.parse_args()
 
 if options.cats != None:
@@ -115,6 +121,19 @@ for cat in allCats:
     dataset = utils.getObj(ws, "bkg_%s" % cat)
     line.append(dataset.sumEntries())    
 print ",".join([str(x) for x in line ])
+
+#----------
+# observed number of events
+#----------
+if options.obs:
+    line = [ "obs", "", "", ""]
+
+    for cat in allCats:
+        dataset = utils.getObj(ws, "data_%s" % cat)
+        line.append(dataset.sumEntries())    
+    print ",".join([str(x) for x in line ])
+
+
 #----------
 # signal at different masses and production mechanisms
 #----------
