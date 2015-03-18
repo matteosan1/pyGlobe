@@ -131,7 +131,7 @@ def emuSelectionV3Simplified(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, b
                 return True
     else:
         if (vbfcat == 1):
-            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < 0.067 and met < 30 and btag1 < 0.58 and btag2 < 0.01):
+            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < 0.067 and met < 30 and btag1 < 0.58 and btag2 < 0.244):
                 return True
         if (vbfcat == 2):
             if (et1 > 22 and et2 > 22 and id1 > 0.97 and iso1 < 0.060 and met < 25 and btag1 < 0.62 and btag2 < 0.30):
