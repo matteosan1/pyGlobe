@@ -90,7 +90,7 @@ def getSignalWeightFactorHelper(pts, etas, btags, btagCuts, wps):
         # now calculate w(0|number of tagged jets)
         # by taking the product of scaleFactors
         import operator
-        print "scaleFactors=",scaleFactors
+        # print "scaleFactors=",scaleFactors
         scaleFactor = reduce(operator.__mul__, scaleFactors, 1)
 
         values.append(scaleFactor)
