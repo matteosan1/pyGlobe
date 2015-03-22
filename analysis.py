@@ -245,8 +245,14 @@ class Analysis:
                     wsCats = cats[p]*3 + 2
                 if (vbfcats[p] != -1):
                     wsCats = 8 + vbfcats[p]
+
+                #----------
+                # add event to workspace
+                #----------
                 self.wsProducer.fillDataset(itype, wsCats, masses[p], weight)
             
+                #----------
+
             #print "cat:",cats[p]
             #print "print:",emuSelection(cats[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)
             #
