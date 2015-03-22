@@ -95,6 +95,33 @@ def emuSelectionV3(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, btag1, btag
 
 
 #----------------------------------------------------------------------
+# first index is number of jets,
+# second index is lepton category
+# value is the list of btag (upper) cuts
+emuSelectionV3Simplified_inclCatBtagCuts = {
+    # 0 jets
+    0: { 0: [], 1: [], 2: [] },
+
+    # 1 jet
+    1: { 0: [ 0.38 ],
+         1: [ 0.48 ],
+         2: [ 0.48 ] },
+
+    # 2 jets
+    2: { 0: [ 0.38, 0.48 ],
+         1: [ 0.51, 0.57 ],
+         2: [ 0.51, 0.57 ],
+                  }
+        }
+
+# index is vbf category
+emuSelectionV3Simplified_vbfCatBtagCuts = {
+    # cat9
+    1: [ 0.58, 0.244 ],
+
+    # cat10
+    2: [ 0.62, 0.30 ],
+    }
 
 def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, njets):
     if (id2 != 11):
@@ -145,43 +172,23 @@ def emuSelectionV3SimplifiedBtagOnly(cat, vbfcat, btag1, btag2, njets):
     # btag only part of original emuSelectionV3Simplified(..)
     if (njets >= 3):
         return False
+
+    btags = [ btag1, btag2 ]
+
     if (vbfcat == -1):
-        if (cat == 0 and njets == 0):
-                return True
-        if (cat == 1 and njets == 0):
-                return True
-        if (cat == 2 and njets == 0):
-                return True
-    
-        if (cat == 0 and njets == 1):
-            if (btag1 < 0.38):
-                return True
-        if (cat == 1 and njets == 1):
-            if (btag1 < 0.48):
-                return True
-        if (cat == 2 and njets == 1):
-            if (btag1 < 0.48):
-                return True
-    
-        if (cat == 0 and njets >= 2):
-            if (btag1 < 0.38 and btag2 < 0.48):
-                return True
-        if (cat == 1 and njets >= 2):
-            if (btag1 < 0.51 and btag2 < 0.57):
-                return True
-        if (cat == 2 and njets >= 2):
-            if (btag1 < 0.51 and btag2 < 0.57):
-                return True
+        # inclusive categories
+        btagCuts = emuSelectionV3Simplified_inclCatBtagCuts[njets][cat]
+
     else:
-        if (vbfcat == 1):
-            if (btag1 < 0.58 and btag2 < 0.244):
-                return True
-        if (vbfcat == 2):
-            if (btag1 < 0.62 and btag2 < 0.30):
-                return True
+        # VBF categories
+        btagCuts = emuSelectionV3Simplified_vbfCatBtagCuts[vbfcat]
 
-    return False
+    # apply the cuts
+    for btag, cut in zip(btags, btagCuts):
+      if btag >= cut:
+         return False
 
+    return True
 
 #----------------------------------------------------------------------
 
