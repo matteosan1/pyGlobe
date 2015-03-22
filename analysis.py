@@ -2,7 +2,8 @@
 import ROOT
 ROOT.gROOT.SetBatch(1)
 
-from helpers import getEMuPair, emuSelectionV3Simplified, emuSelectionV3SimplifiedN_1ET1, emuSelectionV3SimplifiedN_1ET2, emuSelectionV3SimplifiedN_1NJETS,emuSelectionV3SimplifiedN_1MET, emuSelectionV3SimplifiedN_1ID, emuSelectionV3SimplifiedN_1ISO, emuSelectionV3SimplifiedN_1BTAG
+from helpers import getEMuPair, emuSelectionV3SimplifiedN_1ET1, emuSelectionV3SimplifiedN_1ET2, emuSelectionV3SimplifiedN_1NJETS,emuSelectionV3SimplifiedN_1MET, emuSelectionV3SimplifiedN_1ID, emuSelectionV3SimplifiedN_1ISO, emuSelectionV3SimplifiedN_1BTAG
+import helpers
 from  makeWS import WSProducer
 import plotfromoptree, table
 
@@ -227,7 +228,11 @@ class Analysis:
             self.counter.Fill(0, itype, cats[p], 1)
 
             #if (emuSelectionV2(cats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
-            if (emuSelectionV3Simplified(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
+            if (helpers.emuSelectionV3SimplifiedExceptBtag(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, njets20)):
+
+                if not helpers.emuSelectionV3SimplifiedBtagOnly(cats[p], vbfcats[p], btag1, btag2, njets20):
+                    return
+
                 plotcat = cats[p] 
                 if (vbfcats[p] != -1):
                     plotcat = 2 + vbfcats[p]
