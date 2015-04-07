@@ -471,7 +471,7 @@ def makeGaussianSum(mhypVar, recoMassVar, massForName, xmin, xmax, coeffsDict, f
                                          gaussIndex)
 
         if massScaleNuisance != None:
-            formula = "(@0 + @1) * @2"
+            formula = "(@0 + @1) * ( 1 + @2)"
             args = ROOT.RooArgList(mhypVar, dmuFunc, massScaleNuisance)
         else:
             # no mass scale nuisance specified
@@ -905,7 +905,7 @@ nuisanceVars = []
 #----------
 massScaleNuisance = ROOT.RooRealVar("CMS_emu_scale",
                                     "mass scale nuisance",
-                                    1, 0, 2)
+                                    0, -1, 1)
 massScaleNuisance.setConstant(True)
 nuisanceVars.append(massScaleNuisance)
 
