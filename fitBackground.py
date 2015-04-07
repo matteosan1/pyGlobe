@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, re
+import sys, re, math
 
 import utils
 
@@ -29,10 +29,16 @@ def makeBernstein(recoMassVar, prefix, order):
 
         if i < 3:
             # param = new RooRealVar(name.c_str(),name.c_str(),10., 0.,50.);
-            param = ROOT.RooRealVar(name, name, 5., 0.,20.)
+            # param = ROOT.RooRealVar(name, name, 5., 0.,20.)
+            param1 = ROOT.RooRealVar(name + "_sqrt", name + "_sqrt", math.sqrt(5.), - math.sqrt(20.), + math.sqrt(20.))
         else:
             # param = new RooRealVar(name.c_str(),name.c_str(),10., 0.,50.);
-            param = ROOT.RooRealVar(name, name, 5., 0.,20.)
+            # param = ROOT.RooRealVar(name, name, 5., 0.,20.)
+            param1 = ROOT.RooRealVar(name + "_sqrt", name + "_sqrt", math.sqrt(5.), - math.sqrt(20.), + math.sqrt(20.))
+
+        gcs.append(param1)
+
+        param = ROOT.RooFormulaVar(name, name, "@0 * @0", ROOT.RooArgList(param1))
 
         gcs.append(param)
         coeffList.add(param)
