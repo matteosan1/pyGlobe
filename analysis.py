@@ -6,6 +6,10 @@ from helpers import getEMuPair, emuSelectionV3SimplifiedN_1ET1, emuSelectionV3Si
 import helpers
 from  makeWS import WSProducer
 import plotfromoptree, table
+import btagutils
+
+# can be 'mean', 'up' or 'down'
+btagShiftMode = 'mean'
 
 class Analysis:
     def __init__(self, options):
@@ -62,6 +66,9 @@ class Analysis:
         self.tree.SetBranchStatus("pairs", 1)
         self.tree.SetBranchStatus("mass",1)
         self.tree.SetBranchStatus("cat",1)
+
+        self.tree.SetBranchStatus("jetet",1)
+        self.tree.SetBranchStatus("jeteta",1)
 
         if self.options.jesMode == None:
             # nominal jet energy scale
@@ -230,8 +237,33 @@ class Analysis:
             #if (emuSelectionV2(cats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, btag1, btag2, njets20)):
             if (helpers.emuSelectionV3SimplifiedExceptBtag(cats[p], vbfcats[p], et1[p], et2[p], id1[p], id2[p], iso1[p], iso2[p], met, njets20)):
 
-                if not helpers.emuSelectionV3SimplifiedBtagOnly(cats[p], vbfcats[p], btag1, btag2, njets20):
-                    return
+                #----------
+                # determine scale factor due to btag
+                #
+                # note that even events with one or two btagged jets can now contribute
+                # to no btag, no btag
+                #----------
+                # do this for signal only
+                if itype < 0:
+                    btagScaleFactor = btagutils.getSignalWeightFactor(cats[p],
+                                                                      vbfcats[p],
+                                                                      njets20,
+                                                                      [ self.tree.jetet[ijet] for ijet in range(njets20) ],
+                                                                      [ self.tree.jeteta[ijet] for ijet in range(njets20) ],
+                                                                      [ btag1, btag2 ],
+                                                                      btagShiftMode,
+                                                                      )
+                                                                      
+                                                                      
+                    # print "btagScaleFactor=",btagScaleFactor
+                else:
+                    btagScaleFactor = 1.0
+
+                    if itype >= 0:
+                        # still apply the old style btag (without reweighting) to the background AND data
+                        if not helpers.emuSelectionV3SimplifiedBtagOnly(cats[p], vbfcats[p], btag1, btag2, njets20):
+                            return
+                weight *= btagScaleFactor
 
                 plotcat = cats[p] 
                 if (vbfcats[p] != -1):
