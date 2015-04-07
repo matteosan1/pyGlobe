@@ -35,7 +35,7 @@ def getEtaRange(tagger, workingPoint, eta):
 
 #----------------------------------------------------------------------
 
-def getSignalWeightFactorHelper(pts, etas, btags, btagCuts, wps):
+def getSignalWeightFactorHelper(pts, etas, btags, btagCuts, wps, systType):
     # wps are the working points to try
     # for all categories (except 9), this is normally [ ... ['L', 'M'] .. ]
     # for cat 9 we set wps2 to  [ ... , ['L']  ] because the cut is exactly
@@ -54,12 +54,35 @@ def getSignalWeightFactorHelper(pts, etas, btags, btagCuts, wps):
     # list of weight factors under all possible combinations
     values = []
 
+    # same but with potentially a systematic shift applied 
+    valuesShifted = []
+
+    # note that we should fully correlate the errors
+    # on the scale factors of the two jets
+    #
+    # assume that 'max' and 'min' are absolute
+    # (in fact, 'min' seems to be above 1 at 20 GeV for an example)
+    # i.e. no need to add to / subtract from the mean value
+
+    if systType == 'mean':
+        funcName = 'mean'
+    elif systType == 'up':
+        funcName = 'max'
+    elif systType == 'down':
+        funcName = 'min'
+    else:
+        assert False
+
     # loop over combinations of working points
     import itertools
     for thisWorkingPoints in itertools.product(*wps):
 
         # get the scale factors for the jets
         scaleFactors = [ ]
+
+        # scale factor after shifting systematic uncertainty
+        scaleFactorsShifted = []
+
         for i in range(numJets):
 
             # note that we only need to calculate the product
@@ -76,24 +99,34 @@ def getSignalWeightFactorHelper(pts, etas, btags, btagCuts, wps):
             # returns the eta range for this tagger and working point for the given jet
             etaRange = getEtaRange(tagger, thisWp, etas[i])
 
+            # get the mean value (for deciding which point to take)
             func = ROOT.GetSFLight("mean", # meanminmax, 
                                    tagger, 
                                    thisWp, # TaggerStrength, 
                                    etaRange[0], etaRange[1], # Etamin, Etamax, 
                                    "2012", # DataPeriod -- not used ?! 
                                    )
-
             # evaluate the function at the given pt
             # (they seem to start at pt = 20 GeV)
             scaleFactors.append(func.Eval(pts[i]))
 
+            # get the value with uncertainty moved
+            func = ROOT.GetSFLight(funcName, # meanminmax, 
+                                   tagger, 
+                                   thisWp, # TaggerStrength, 
+                                   etaRange[0], etaRange[1], # Etamin, Etamax, 
+                                   "2012", # DataPeriod -- not used ?! 
+                                   )
+
+            scaleFactorsShifted.append(func.Eval(pts[i]))
+
+
         # now calculate w(0|number of tagged jets)
         # by taking the product of scaleFactors
         import operator
-        # print "scaleFactors=",scaleFactors
-        scaleFactor = reduce(operator.__mul__, scaleFactors, 1)
 
-        values.append(scaleFactor)
+        values.append(reduce(operator.__mul__, scaleFactors, 1))
+        valuesShifted.append(reduce(operator.__mul__, scaleFactorsShifted, 1))
 
     # end of loop over combinations of working points
 
@@ -104,11 +137,16 @@ def getSignalWeightFactorHelper(pts, etas, btags, btagCuts, wps):
     # set of working points globally, apply it to ALL EVENTS
     # (e.g. at 125 GeV) and only then take the minimum
     # (which will give a larger average scaling factor)
-    return min(values)
+    #
+    # use values to find the minimum scale factor
+    # return the corresponding value in valuesShifted
+    minPos = min(zip(values, range(len(values))))[1]
+
+    return valuesShifted[minPos]
 
 #----------------------------------------------------------------------
 
-def getSignalWeightFactor(lepCat, vbfCat, njets, pts, etas, btags):
+def getSignalWeightFactor(lepCat, vbfCat, njets, pts, etas, btags, systType):
     # find the cut values
 
     workingPointsToTest = [ [ 'L', 'M' ], [ 'L', 'M' ]]
@@ -132,6 +170,6 @@ def getSignalWeightFactor(lepCat, vbfCat, njets, pts, etas, btags):
             # cat9
             workingPointsToTest = [ [ 'L', 'M' ], [ 'L' ]]
 
-    return getSignalWeightFactorHelper(pts, etas, btags, btagCuts, workingPointsToTest)
+    return getSignalWeightFactorHelper(pts, etas, btags, btagCuts, workingPointsToTest, systType)
     
     
