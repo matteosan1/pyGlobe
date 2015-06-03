@@ -123,47 +123,90 @@ emuSelectionV3Simplified_vbfCatBtagCuts = {
     2: [ 0.62, 0.30 ],
     }
 
+
+def getMetCutOld(cat, njets, vbfcat):
+    # originally optimized values, before ARC comments of 2015-05-20
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            return 30
+
+        if (cat == 1 and njets == 0):
+            return 30
+
+        if (cat == 2 and njets == 0):
+            return 30
+    
+        if (cat == 0 and njets == 1):
+            return 30
+
+        if (cat == 1 and njets == 1):
+            return 22
+
+        if (cat == 2 and njets == 1):
+            return 22
+    
+        if (cat == 0 and njets >= 2):
+            return 25
+
+        if (cat == 1 and njets >= 2):
+            return 32
+
+        if (cat == 2 and njets >= 2):
+            return 32
+
+    else:
+        if (vbfcat == 1):
+            return 30
+
+        if (vbfcat == 2):
+            return 25     
+    
+    
+
 def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, njets):
     if (id2 != 11):
         return False
     if (njets >= 3):
         return False
+
+    metCut = getMetCutOld(cat, njets, vbfcat)
+
     if (vbfcat == -1):
         if (cat == 0 and njets == 0):
-            if (et1 > 25 and et2 > 25 and id1 > 0.800 and iso1 < 0.500 and met < 30):
+            if (et1 > 25 and et2 > 25 and id1 > 0.800 and iso1 < 0.500 and met < metCut):
                 return True
         if (cat == 1 and njets == 0):
-            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < metCut):
                 return True
         if (cat == 2 and njets == 0):
-            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < 30):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < metCut):
                 return True
     
         if (cat == 0 and njets == 1):
-            if (et1 > 22 and et2 > 22 and id1 > 0.650 and iso1 < 0.110 and met < 30):
+            if (et1 > 22 and et2 > 22 and id1 > 0.650 and iso1 < 0.110 and met < metCut):
                 return True
         if (cat == 1 and njets == 1):
-            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < metCut):
                 return True
         if (cat == 2 and njets == 1):
-            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < 22):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < metCut):
                 return True
     
         if (cat == 0 and njets >= 2):
-            if (et1 > 25 and et2 > 25 and id1 > 0.810 and iso1 < 0.200 and met < 25):
+            if (et1 > 25 and et2 > 25 and id1 > 0.810 and iso1 < 0.200 and met < metCut):
                 return True
         if (cat == 1 and njets >= 2):
-            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < metCut):
                 return True
         if (cat == 2 and njets >= 2):
-            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < 32):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < metCut):
                 return True
     else:
         if (vbfcat == 1):
-            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < 0.067 and met < 30):
+            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < 0.067 and met < metCut):
                 return True
         if (vbfcat == 2):
-            if (et1 > 22 and et2 > 22 and id1 > 0.97 and iso1 < 0.060 and met < 25):
+            if (et1 > 22 and et2 > 22 and id1 > 0.97 and iso1 < 0.060 and met < metCut):
                 return True
 
     return False
