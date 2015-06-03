@@ -18,8 +18,6 @@ makeAcpObjects = False
 #----------------------------------------------------------------------
 
 class WSProducer:
-    mass = ROOT.RooRealVar("CMS_emu_mass", "m_{e#mu}", 140, 110, 160)
-    mass.setUnit("GeV/c^{2}")
 
     # for filling weighted datsets (for signal)
     weightVar = ROOT.RooRealVar("weight","weight",1)
@@ -32,10 +30,8 @@ class WSProducer:
     otherObjectsToImport = []
 
     set = ROOT.RooArgSet("set")
-    set.add(mass)
 
     massWithWeight = ROOT.RooArgSet("massWithWeight")
-    massWithWeight.add(mass)
     massWithWeight.add(weightVar)
 
     lumi = 0.
@@ -44,6 +40,14 @@ class WSProducer:
     #----------------------------------------
     def __init__(self, options):
         self.options = options
+
+        # TODO: should ensure that 140 is within the specified limit...
+        self.mass = ROOT.RooRealVar("CMS_emu_mass", "m_{e#mu}", 140, options.mmin, options.mmax)
+        self.mass.setUnit("GeV/c^{2}")
+
+        self.set.add(self.mass)
+
+        self.massWithWeight.add(self.mass)
 
     #----------------------------------------
     
