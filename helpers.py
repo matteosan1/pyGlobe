@@ -197,9 +197,57 @@ def getMetCut(cat, njets, vbfcat):
 
         if (vbfcat == 2):
             return 25     
+
+#----------------------------------------------------------------------    
+def getIsoCut(cat, njets, vbfcat):
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            # cat 0
+            return 0.500
+
+        if (cat == 1 and njets == 0):
+            # cat 3
+            return 0.470
+
+        if (cat == 2 and njets == 0):
+            # cat 6
+            return 0.470
     
+        if (cat == 0 and njets == 1):
+            # cat 1
+            return 0.110
+
+        if (cat == 1 and njets == 1):
+            # cat 4
+            return 0.095 
+
+        if (cat == 2 and njets == 1):
+            # cat 7
+            return 0.095
+    
+        if (cat == 0 and njets >= 2):
+            # cat 2
+            return 0.200
+
+        if (cat == 1 and njets >= 2):
+            # cat 5
+            return 0.220
+
+        if (cat == 2 and njets >= 2):
+            # cat 8
+            return 0.220
+
+    else:
+        if (vbfcat == 1):
+            # cat 9
+            return 0.067
+
+        if (vbfcat == 2):
+            # cat 10
+            return 0.060
     
 
+#----------------------------------------------------------------------    
 def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, njets):
     if (id2 != 11):
         return False
@@ -207,61 +255,64 @@ def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, is
         return False
 
     metCut = getMetCut(cat, njets, vbfcat)
+    isoCut = getIsoCut(cat, njets, vbfcat)
+
+
 
     if (vbfcat == -1):
         if (cat == 0 and njets == 0):
             # cat 0
-            if (et1 > 25 and et2 > 25 and id1 > 0.800 and iso1 < 0.500 and met < metCut):
+            if (et1 > 25 and et2 > 25 and id1 > 0.800 and iso1 < isoCut and met < metCut):
                 return True
 
         if (cat == 1 and njets == 0):
             # cat 3
-            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < metCut):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < isoCut and met < metCut):
                 return True
 
         if (cat == 2 and njets == 0):
             # cat 6
-            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < 0.470 and met < metCut):
+            if (et1 > 20 and et2 > 20 and id1 > 0.580 and iso1 < isoCut and met < metCut):
                 return True
     
         if (cat == 0 and njets == 1):
             # cat 1
-            if (et1 > 22 and et2 > 22 and id1 > 0.650 and iso1 < 0.110 and met < metCut):
+            if (et1 > 22 and et2 > 22 and id1 > 0.650 and iso1 < isoCut and met < metCut):
                 return True
 
         if (cat == 1 and njets == 1):
             # cat 4
-            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < metCut):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < isoCut and met < metCut):
                 return True
 
         if (cat == 2 and njets == 1):
             # cat 7
-            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < 0.095 and met < metCut):
+            if (et1 > 22 and et2 > 22 and id1 > 0.680 and iso1 < isoCut and met < metCut):
                 return True
     
         if (cat == 0 and njets >= 2):
             # cat 2
-            if (et1 > 25 and et2 > 25 and id1 > 0.810 and iso1 < 0.200 and met < metCut):
+            if (et1 > 25 and et2 > 25 and id1 > 0.810 and iso1 < isoCut and met < metCut):
                 return True
 
         if (cat == 1 and njets >= 2):
             # cat 5
-            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < metCut):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < isoCut and met < metCut):
                 return True
 
         if (cat == 2 and njets >= 2):
             # cat 8
-            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < 0.220 and met < metCut):
+            if (et1 > 20 and et2 > 20 and id1 > 0.690 and iso1 < isoCut and met < metCut):
                 return True
     else:
         if (vbfcat == 1):
             # cat 9
-            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < 0.067 and met < metCut):
+            if (et1 > 22 and et2 > 22 and id1 > 0.78 and iso1 < isoCut and met < metCut):
                 return True
 
         if (vbfcat == 2):
             # cat 10
-            if (et1 > 22 and et2 > 22 and id1 > 0.97 and iso1 < 0.060 and met < metCut):
+            if (et1 > 22 and et2 > 22 and id1 > 0.97 and iso1 < isoCut and met < metCut):
                 return True
 
     return False
