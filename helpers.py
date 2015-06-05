@@ -161,6 +161,43 @@ def getMetCutOld(cat, njets, vbfcat):
         if (vbfcat == 2):
             return 25     
     
+def getMetCut(cat, njets, vbfcat):
+    # values suggested by ARC comments of 2015-05-20
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            return 30
+
+        if (cat == 1 and njets == 0):
+            return 30
+
+        if (cat == 2 and njets == 0):
+            return 30
+    
+        if (cat == 0 and njets == 1):
+            return 30
+
+        if (cat == 1 and njets == 1):
+            return 20
+
+        if (cat == 2 and njets == 1):
+            return 20
+    
+        if (cat == 0 and njets >= 2):
+            return 25
+
+        if (cat == 1 and njets >= 2):
+            return 30
+
+        if (cat == 2 and njets >= 2):
+            return 30
+
+    else:
+        if (vbfcat == 1):
+            return 30
+
+        if (vbfcat == 2):
+            return 25     
+    
     
 
 def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, iso2, met, njets):
@@ -169,7 +206,7 @@ def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, is
     if (njets >= 3):
         return False
 
-    metCut = getMetCutOld(cat, njets, vbfcat)
+    metCut = getMetCut(cat, njets, vbfcat)
 
     if (vbfcat == -1):
         if (cat == 0 and njets == 0):
