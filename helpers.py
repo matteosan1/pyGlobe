@@ -123,6 +123,108 @@ emuSelectionV3Simplified_vbfCatBtagCuts = {
     2: [ 0.62, 0.30 ],
     }
 
+#----------------------------------------------------------------------
+def getEt1Cut(cat, njets, vbfcat):
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            # cat 0
+            return 25 
+
+        if (cat == 1 and njets == 0):
+            # cat 3
+            return 20 
+
+        if (cat == 2 and njets == 0):
+            # cat 6
+            return 20
+    
+        if (cat == 0 and njets == 1):
+            # cat 1
+            return 22
+
+        if (cat == 1 and njets == 1):
+            # cat 4
+            return 22
+
+        if (cat == 2 and njets == 1):
+            # cat 7
+            return 22
+    
+        if (cat == 0 and njets >= 2):
+            # cat 2
+            return 25 
+
+        if (cat == 1 and njets >= 2):
+            # cat 5
+            return 20
+
+        if (cat == 2 and njets >= 2):
+            # cat 8
+            return 20
+
+    else:
+        if (vbfcat == 1):
+            # cat 9
+            return 22
+
+        if (vbfcat == 2):
+            # cat 10
+            return 22
+
+
+#----------------------------------------------------------------------
+
+
+def getEt2Cut(cat, njets, vbfcat):
+
+    if (vbfcat == -1):
+        if (cat == 0 and njets == 0):
+            # cat 0
+            return 25
+
+        if (cat == 1 and njets == 0):
+            # cat 3
+            return 20
+
+        if (cat == 2 and njets == 0):
+            # cat 6
+            return 20
+    
+        if (cat == 0 and njets == 1):
+            # cat 1
+            return 22
+
+        if (cat == 1 and njets == 1):
+            # cat 4
+            return 22
+
+        if (cat == 2 and njets == 1):
+            # cat 7
+            return 22
+    
+        if (cat == 0 and njets >= 2):
+            # cat 2
+            return 25
+
+        if (cat == 1 and njets >= 2):
+            # cat 5
+            return 20
+
+        if (cat == 2 and njets >= 2):
+            # cat 8
+            return 20
+
+    else:
+        if (vbfcat == 1):
+            # cat 9
+            return 22
+
+        if (vbfcat == 2):
+            # cat 10
+            return 22
+
+
+#----------------------------------------------------------------------
 
 def getMetCutOld(cat, njets, vbfcat):
     # originally optimized values, before ARC comments of 2015-05-20
@@ -301,71 +403,26 @@ def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, is
     if (njets >= 3):
         return False
 
+    et1Cut = getEt1Cut(cat, njets, vbfcat)
+    et2Cut = getEt2Cut(cat, njets, vbfcat)
+
     metCut = getMetCut(cat, njets, vbfcat)
     isoCut = getIsoCut(cat, njets, vbfcat)
     idCut  = getIdCut(cat, njets, vbfcat)
 
     # common to all categories
-    if not (id1 > idCut and iso1 < isoCut and met < metCut):
-        return False
-
-    if (vbfcat == -1):
-        if (cat == 0 and njets == 0):
-            # cat 0
-            if (et1 > 25 and et2 > 25):
-                return True
-
-        if (cat == 1 and njets == 0):
-            # cat 3
-            if (et1 > 20 and et2 > 20):
-                return True
-
-        if (cat == 2 and njets == 0):
-            # cat 6
-            if (et1 > 20 and et2 > 20):
-                return True
-    
-        if (cat == 0 and njets == 1):
-            # cat 1
-            if (et1 > 22 and et2 > 22):
-                return True
-
-        if (cat == 1 and njets == 1):
-            # cat 4
-            if (et1 > 22 and et2 > 22):
-                return True
-
-        if (cat == 2 and njets == 1):
-            # cat 7
-            if (et1 > 22 and et2 > 22):
-                return True
-    
-        if (cat == 0 and njets >= 2):
-            # cat 2
-            if (et1 > 25 and et2 > 25):
-                return True
-
-        if (cat == 1 and njets >= 2):
-            # cat 5
-            if (et1 > 20 and et2 > 20):
-                return True
-
-        if (cat == 2 and njets >= 2):
-            # cat 8
-            if (et1 > 20 and et2 > 20):
-                return True
-    else:
-        if (vbfcat == 1):
-            # cat 9
-            if (et1 > 22 and et2 > 22):
-                return True
-
-        if (vbfcat == 2):
-            # cat 10
-            if (et1 > 22 and et2 > 22):
-                return True
+    if (
+        et1 > et1Cut    and
+        et2 > et2Cut    and
+        id1 > idCut     and
+        iso1 < isoCut   and
+        met < metCut
+        ):
+        return True
 
     return False
+
+#----------------------------------------------------------------------
 
 def emuSelectionV3SimplifiedBtagOnly(cat, vbfcat, btag1, btag2, njets):
     # btag only part of original emuSelectionV3Simplified(..)
