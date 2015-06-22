@@ -352,8 +352,8 @@ def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, is
     if (njets >= 3):
         return False
 
-    et1Cut = getEt1Cut(cat, njets, vbfcat)
-    et2Cut = getEt2Cut(cat, njets, vbfcat)
+    et1Cut = getEtCut(cat, njets, vbfcat)
+    et2Cut = et1Cut
 
     metCut = getMetCut(cat, njets, vbfcat)
     isoCut = getIsoCut(cat, njets, vbfcat)
