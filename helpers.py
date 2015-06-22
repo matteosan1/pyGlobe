@@ -124,7 +124,8 @@ emuSelectionV3Simplified_vbfCatBtagCuts = {
     }
 
 #----------------------------------------------------------------------
-def getEt1Cut(cat, njets, vbfcat):
+# get Et cut for both leptons
+def getEtCut(cat, njets, vbfcat):
     if (vbfcat == -1):
         if (cat == 0 and njets == 0):
             # cat 0
@@ -153,58 +154,6 @@ def getEt1Cut(cat, njets, vbfcat):
         if (cat == 0 and njets >= 2):
             # cat 2
             return 25 
-
-        if (cat == 1 and njets >= 2):
-            # cat 5
-            return 20
-
-        if (cat == 2 and njets >= 2):
-            # cat 8
-            return 20
-
-    else:
-        if (vbfcat == 1):
-            # cat 9
-            return 22
-
-        if (vbfcat == 2):
-            # cat 10
-            return 22
-
-
-#----------------------------------------------------------------------
-
-
-def getEt2Cut(cat, njets, vbfcat):
-
-    if (vbfcat == -1):
-        if (cat == 0 and njets == 0):
-            # cat 0
-            return 25
-
-        if (cat == 1 and njets == 0):
-            # cat 3
-            return 20
-
-        if (cat == 2 and njets == 0):
-            # cat 6
-            return 20
-    
-        if (cat == 0 and njets == 1):
-            # cat 1
-            return 22
-
-        if (cat == 1 and njets == 1):
-            # cat 4
-            return 22
-
-        if (cat == 2 and njets == 1):
-            # cat 7
-            return 22
-    
-        if (cat == 0 and njets >= 2):
-            # cat 2
-            return 25
 
         if (cat == 1 and njets >= 2):
             # cat 5
