@@ -305,6 +305,10 @@ def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, is
     isoCut = getIsoCut(cat, njets, vbfcat)
     idCut  = getIdCut(cat, njets, vbfcat)
 
+    # TEST FOR ARC (suggested 2015-05-20)
+    isoCut = 0.2
+    idCut = 0.8
+
     # common to all categories
     if not (id1 > idCut and iso1 < isoCut and met < metCut):
         return False
