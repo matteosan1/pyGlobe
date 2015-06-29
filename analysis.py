@@ -165,6 +165,23 @@ class Analysis:
         # reweight for different PDF
         #----------
         if self.options.pdfindex != 0:
+
+            # assume the PDF weights are in the same order
+            # as given in the CMSSW configuration file
+            # and that the first one is the 'central'
+            # one for each family of PDFs
+
+            #                  num. PDFs    central      syst.
+            # CT10:              53            0,        1..53
+            # MSTW2008nlo68cl:   41           53,       54..93
+            # NNPDF10_100       101           94,       95..194
+
+            #
+            # the original sample was produced with CT10
+            # (see the LHE file), so normalize to the central
+            # value of CT10, i.e. weight[0]
+
+
             weight *= self.tree.pdf_weights[self.options.pdfindex] / self.tree.pdf_weights[0]
 
         #----------
