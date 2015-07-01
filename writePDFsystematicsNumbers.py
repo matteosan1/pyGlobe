@@ -189,8 +189,9 @@ numCats = len(allCats)
 ws.cell(column = 1, row = 1, value = 'global pdfIndex')
 ws.cell(column = 2, row = 1, value = 'pdf family')
 ws.cell(column = 3, row = 1, value = 'in-family index')
+ws.cell(column = 4, row = 1, value = 'sum weights globe tuples')
 
-firstNumEventsColumn = 5
+firstNumEventsColumn = 6
 
 for procIndex, proc in enumerate(allProcs):
 
@@ -248,6 +249,13 @@ for procIndex, proc in enumerate(allProcs):
 
         ws.cell(column = 2, row = row, value = pdfFamily)
         ws.cell(column = 3, row = row, value = inFamilyIndex)
+
+        #----------
+        # sum of weights in globe tuples
+        #----------
+        ws.cell(column = 4, row = row, value = sumWeightsGlobeTuples[proc][pdfIndex])
+
+        #----------
 
         for catIndex, cat in enumerate(allCats):
             ws.cell(
