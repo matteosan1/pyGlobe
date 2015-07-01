@@ -43,7 +43,8 @@ allProcs = None
 def getSumOfWeightsGlobeTuples(proc):
     filePattern = "/home/users/aholz/hadoop/2013-07-hemu/00-crab-globe/sig-with-pdfweights/" + proc + "/125.0/*.root"
 
-    raise Exception("MUST REVIEW THIS")
+    # for the moment, we just take the pdf weights into account,
+    # no correlation with the PU reweighting
 
     import ROOT
     chain = ROOT.TChain("event")
@@ -59,7 +60,7 @@ def getSumOfWeightsGlobeTuples(proc):
 
         # get event weight for each pdf
         for j in range(numPDFs):
-            weight = chain.event.weight * chain.event.pdf_weights[j] / chain.event.pdf_weights[0]
+            weight = chain.weight * chain.pdf_weights[j] / chain.pdf_weights[0]
 
             retval[j] += weight
 
