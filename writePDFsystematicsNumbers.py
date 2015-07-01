@@ -190,12 +190,14 @@ ws.cell(column = 1, row = 1, value = 'global pdfIndex')
 ws.cell(column = 2, row = 1, value = 'pdf family')
 ws.cell(column = 3, row = 1, value = 'in-family index')
 
+firstNumEventsColumn = 5
+
 for procIndex, proc in enumerate(allProcs):
 
     row = 1
     ws.cell(
         row = row + (4 + numPDFs) * procIndex,
-        column = 5,
+        column = firstNumEventsColumn,
         value = proc)
 
     for catIndex, cat in enumerate(allCats):
@@ -205,11 +207,11 @@ for procIndex, proc in enumerate(allProcs):
         # normal observable
         ws.cell(
             row = row,
-            column = 5 + catIndex,
+            column = firstNumEventsColumn + catIndex,
             value = cat)
 
         # delta+ / delta- columns
-        col = 5 + numCats + 1 + 2 * catIndex
+        col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
 
         ws.cell(
             row = row,
@@ -249,7 +251,7 @@ for procIndex, proc in enumerate(allProcs):
 
         for catIndex, cat in enumerate(allCats):
             ws.cell(
-                column = 5 + catIndex,
+                column = firstNumEventsColumn + catIndex,
                 row = row,
                 value = numSigEventsAfterSelection[pdfIndex][cat][proc])
 
@@ -269,9 +271,9 @@ for procIndex, proc in enumerate(allProcs):
 
                 # add the sqrt(sumsq(..)) cells
                 for catIndex, cat in enumerate(allCats):
-                    col = 5 + numCats + 1 + 2 * catIndex
+                    col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
 
-                    origCol = openpyxl.cell.get_column_letter(5 + catIndex)
+                    origCol = openpyxl.cell.get_column_letter(firstNumEventsColumn + catIndex)
 
                     for plusMinusIndex in range(2):
                         colName = openpyxl.cell.get_column_letter(col + plusMinusIndex)
@@ -298,9 +300,9 @@ for procIndex, proc in enumerate(allProcs):
 
                 for catIndex, cat in enumerate(allCats):
 
-                    col = 5 + numCats + 1 + 2 * catIndex
+                    col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
 
-                    origCol = openpyxl.cell.get_column_letter(5 + catIndex)
+                    origCol = openpyxl.cell.get_column_letter(firstNumEventsColumn + catIndex)
 
                     ws.cell(
                         column = col,
@@ -332,9 +334,9 @@ for procIndex, proc in enumerate(allProcs):
 
                 # add the stdev(..) cells
                 for catIndex, cat in enumerate(allCats):
-                    col = 5 + numCats + 1 + 2 * catIndex
+                    col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
 
-                    colName = openpyxl.cell.get_column_letter(5 + catIndex)
+                    colName = openpyxl.cell.get_column_letter(firstNumEventsColumn + catIndex)
 
                     # the range over which we take the average and stddev.
                     rangeDesc = "%s%d:%s%d" % (colName, row + 1, # do not include nominal row
@@ -377,7 +379,7 @@ for procIndex, proc in enumerate(allProcs):
             value = "max over all PDF families")
 
     for catIndex, cat in enumerate(allCats):
-        column = 5 + catIndex
+        column = firstNumEventsColumn + catIndex
 
         cellNames = [ cell.coordinate for cell in cellsForMax[cat] ]
 
