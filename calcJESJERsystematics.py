@@ -86,7 +86,7 @@ for fname, typename in  ((fnameNominal, "nom"),
 #----------------------------------------
 
 # from pprint import pprint
-# pprint(numSigEvents)
+pprint(numSigEvents)
 
 # first index is category
 # second index is signal process
