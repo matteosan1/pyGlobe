@@ -356,8 +356,12 @@ def emuSelectionV3SimplifiedExceptBtag(cat, vbfcat, et1, et2, id1, id2, iso1, is
     et2Cut = et1Cut
 
     metCut = getMetCut(cat, njets, vbfcat)
-    isoCut = getIsoCut(cat, njets, vbfcat)
-    idCut  = getIdCut(cat, njets, vbfcat)
+
+
+    # unified ID and ISO cuts
+    # requested by ARC (2015-06-28)
+    isoCut = 0.2
+    idCut = 0.8
 
     # common to all categories
     if (
