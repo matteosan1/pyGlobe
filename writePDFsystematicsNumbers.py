@@ -123,6 +123,11 @@ def getSumOfWeightsWorkspace(fname):
     return retval
 
 #----------------------------------------------------------------------
+
+# def addSumEventsAfterSelectionFields(topleft):
+
+
+#----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
 
@@ -193,6 +198,8 @@ ws.cell(column = 4, row = 1, value = 'sum weights globe tuples')
 
 firstNumEventsColumn = 6
 
+firstRatioColumn = firstNumEventsColumn + numCats + 1
+
 for procIndex, proc in enumerate(allProcs):
 
     row = 1
@@ -212,7 +219,7 @@ for procIndex, proc in enumerate(allProcs):
             value = cat)
 
         # delta+ / delta- columns
-        col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
+        col = firstRatioColumn  + numCats + 1 + 2 * catIndex
 
         ws.cell(
             row = row,
@@ -253,15 +260,25 @@ for procIndex, proc in enumerate(allProcs):
         #----------
         # sum of weights in globe tuples
         #----------
-        ws.cell(column = 4, row = row, value = sumWeightsGlobeTuples[proc][pdfIndex])
+        sumGlobeWeightsCell = ws.cell(column = 4, row = row, value = sumWeightsGlobeTuples[proc][pdfIndex])
 
         #----------
 
         for catIndex, cat in enumerate(allCats):
-            ws.cell(
+            cellAfterSelection = ws.cell(
                 column = firstNumEventsColumn + catIndex,
                 row = row,
                 value = numSigEventsAfterSelection[pdfIndex][cat][proc])
+
+            #----------
+            # ratio of events after selection to sum of globe tuples
+            #----------
+
+            ws.cell(
+                column = firstRatioColumn + catIndex,
+                row = row,
+                value = "=%s / %s" % (cellAfterSelection.coordinate, sumGlobeWeightsCell.coordinate)
+                )
 
         #----------
         # delta columns
@@ -279,9 +296,13 @@ for procIndex, proc in enumerate(allProcs):
 
                 # add the sqrt(sumsq(..)) cells
                 for catIndex, cat in enumerate(allCats):
-                    col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
 
-                    origCol = openpyxl.cell.get_column_letter(firstNumEventsColumn + catIndex)
+                    # for number of events
+                    # col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
+                    # for 'acceptance'
+                    col = firstRatioColumn + numCats + 1 + 2 * catIndex
+
+                    origCol = openpyxl.cell.get_column_letter(firstRatioColumn + catIndex)
 
                     for plusMinusIndex in range(2):
                         colName = openpyxl.cell.get_column_letter(col + plusMinusIndex)
@@ -308,9 +329,12 @@ for procIndex, proc in enumerate(allProcs):
 
                 for catIndex, cat in enumerate(allCats):
 
-                    col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
+                    # for number of events
+                    # col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
+                    # for 'acceptance'
+                    col = firstRatioColumn + numCats + 1 + 2 * catIndex
 
-                    origCol = openpyxl.cell.get_column_letter(firstNumEventsColumn + catIndex)
+                    origCol = openpyxl.cell.get_column_letter(firstRatioColumn + catIndex)
 
                     ws.cell(
                         column = col,
@@ -342,9 +366,13 @@ for procIndex, proc in enumerate(allProcs):
 
                 # add the stdev(..) cells
                 for catIndex, cat in enumerate(allCats):
-                    col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
 
-                    colName = openpyxl.cell.get_column_letter(firstNumEventsColumn + catIndex)
+                    # for number of events
+                    # col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
+                    # for 'acceptance'
+                    col = firstRatioColumn + numCats + 1 + 2 * catIndex
+
+                    colName = openpyxl.cell.get_column_letter(firstRatioColumn + catIndex)
 
                     # the range over which we take the average and stddev.
                     rangeDesc = "%s%d:%s%d" % (colName, row + 1, # do not include nominal row
@@ -387,7 +415,8 @@ for procIndex, proc in enumerate(allProcs):
             value = "max over all PDF families")
 
     for catIndex, cat in enumerate(allCats):
-        column = firstNumEventsColumn + catIndex
+        # column = firstNumEventsColumn + catIndex
+        column = firstRatioColumn + catIndex
 
         cellNames = [ cell.coordinate for cell in cellsForMax[cat] ]
 
