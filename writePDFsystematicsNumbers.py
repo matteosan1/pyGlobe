@@ -427,6 +427,16 @@ for procIndex, proc in enumerate(allProcs):
 
         cell.number_format = '0.00%'
 
+        # produce the same cell with 'absolute' format
+        # so we can put them into the python files
+        # to generate the datacards for combine
+        cell = ws.cell(row = row + 1,
+                       column = column,
+                       value = "=1 + MAX(%s)" % ",".join(cellNames)
+                       )
+        
+
+
 # end of loop over processes
 
 wb.save(filename = "pdf-uncert.xlsx")
