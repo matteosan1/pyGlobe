@@ -126,6 +126,106 @@ def getSumOfWeightsWorkspace(fname):
 
 # def addSumEventsAfterSelectionFields(topleft):
 
+def addPerPDFfamilyUpDownSummary(row):
+    # adds cells taking the maximum or RMS for the sets in a PDF
+
+    global allCats
+    global firstRatioColumn
+
+    # add the sqrt(sumsq(..)) cells
+    for catIndex, cat in enumerate(allCats):
+
+        # for number of events
+        # col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
+        # for 'acceptance'
+        col = firstRatioColumn + numCats + 1 + 2 * catIndex
+
+        origCol = openpyxl.cell.get_column_letter(firstRatioColumn + catIndex)
+
+        for plusMinusIndex in range(2):
+            colName = openpyxl.cell.get_column_letter(col + plusMinusIndex)
+
+            cell = ws.cell(row = row + familySize + 1,
+                           column = col + plusMinusIndex,
+                           value = '=SQRT(SUMSQ(%s%d:%s%d)) / %s%d' % (colName, row,
+                                                                       colName, row + familySize - 1,
+                                                                       origCol, row)
+                           )
+
+            cell.number_format = '0.00%'
+
+            cellsForMax.setdefault(cat,[]).append(cell)
+
+            ## cell = ws.cell(row = row + familySize + 1,
+            ##                column = col + plusMinusIndex,
+            ##                value = '=SQRT(SUMSQ(%s%d:%s%d))' % (colName, row,
+            ##                                                            colName, row + familySize - 1,
+            ##                                                            )
+            ##                )
+
+
+
+#----------------------------------------------------------------------
+
+def addPerPDFfamilyNNPDFsummary(row):
+
+    global allCats
+    global firstRatioColumn
+
+    # add the stdev(..) cells
+    for catIndex, cat in enumerate(allCats):
+
+        # for number of events
+        # col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
+        # for 'acceptance'
+        col = firstRatioColumn + numCats + 1 + 2 * catIndex
+
+        colName = openpyxl.cell.get_column_letter(firstRatioColumn + catIndex)
+
+        # the range over which we take the average and stddev.
+        rangeDesc = "%s%d:%s%d" % (colName, row + 1, # do not include nominal row
+                                   colName, row + familySize - 1)
+
+        cell = ws.cell(row = row + familySize + 1,
+                column = col,
+                value = '=STDEV(%s) / AVERAGE(%s)'  % (rangeDesc, rangeDesc),
+                )
+
+        cell.number_format = '0.00%'
+        cellsForMax.setdefault(cat,[]).append(cell)
+
+#----------------------------------------------------------------------
+
+def addMaxOverPDFfamilies(row):
+    ws.cell(row = row,
+            column = 3,
+            value = "max over all PDF families")
+
+    for catIndex, cat in enumerate(allCats):
+        # column = firstNumEventsColumn + catIndex
+        column = firstRatioColumn + catIndex
+
+        cellNames = [ cell.coordinate for cell in cellsForMax[cat] ]
+
+        cell = ws.cell(row = row,
+                       column = column,
+                       value = "=MAX(%s)" % ",".join(cellNames)
+                       )
+
+        cell.number_format = '0.00%'
+
+        # produce the same cell with 'absolute' format
+        # so we can put them into the python files
+        # to generate the datacards for combine
+        cell = ws.cell(row = row + 1,
+                       column = column,
+                       value = "=1 + MAX(%s)" % ",".join(cellNames)
+                       )
+        
+
+    
+
+
 
 #----------------------------------------------------------------------
 # main
@@ -293,37 +393,7 @@ for procIndex, proc in enumerate(allProcs):
         
         if pdfFamily in pdfsWithUpDown:
             if inFamilyIndex == 0:
-
-                # add the sqrt(sumsq(..)) cells
-                for catIndex, cat in enumerate(allCats):
-
-                    # for number of events
-                    # col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
-                    # for 'acceptance'
-                    col = firstRatioColumn + numCats + 1 + 2 * catIndex
-
-                    origCol = openpyxl.cell.get_column_letter(firstRatioColumn + catIndex)
-
-                    for plusMinusIndex in range(2):
-                        colName = openpyxl.cell.get_column_letter(col + plusMinusIndex)
-
-                        cell = ws.cell(row = row + familySize + 1,
-                                       column = col + plusMinusIndex,
-                                       value = '=SQRT(SUMSQ(%s%d:%s%d)) / %s%d' % (colName, row,
-                                                                                   colName, row + familySize - 1,
-                                                                                   origCol, row)
-                                       )
-
-                        cell.number_format = '0.00%'
-
-                        cellsForMax.setdefault(cat,[]).append(cell)
-
-                        ## cell = ws.cell(row = row + familySize + 1,
-                        ##                column = col + plusMinusIndex,
-                        ##                value = '=SQRT(SUMSQ(%s%d:%s%d))' % (colName, row,
-                        ##                                                            colName, row + familySize - 1,
-                        ##                                                            )
-                        ##                )
+                addPerPDFfamilyUpDownSummary(row)
 
             if inFamilyIndex > 0 and inFamilyIndex % 2 == 0:
 
@@ -364,27 +434,7 @@ for procIndex, proc in enumerate(allProcs):
 
             if inFamilyIndex == 0:
 
-                # add the stdev(..) cells
-                for catIndex, cat in enumerate(allCats):
-
-                    # for number of events
-                    # col = firstNumEventsColumn + numCats + 1 + 2 * catIndex
-                    # for 'acceptance'
-                    col = firstRatioColumn + numCats + 1 + 2 * catIndex
-
-                    colName = openpyxl.cell.get_column_letter(firstRatioColumn + catIndex)
-
-                    # the range over which we take the average and stddev.
-                    rangeDesc = "%s%d:%s%d" % (colName, row + 1, # do not include nominal row
-                                               colName, row + familySize - 1)
-
-                    cell = ws.cell(row = row + familySize + 1,
-                            column = col,
-                            value = '=STDEV(%s) / AVERAGE(%s)'  % (rangeDesc, rangeDesc)
-                            )
-
-                    cell.number_format = '0.00%'
-                    cellsForMax.setdefault(cat,[]).append(cell)
+                addPerPDFfamilyNNPDFsummary(row)
 
             else:
                 pass
@@ -410,32 +460,7 @@ for procIndex, proc in enumerate(allProcs):
     # row = 4 + (4 + numPDFs + 3 * numPDFfamilies) * len(allProcs)
     row = 4 + numPDFs + (4 + numPDFs + 3 * numPDFfamilies) * procIndex + 3 * (numPDFfamilies - 1) + 2
 
-    ws.cell(row = row,
-            column = 3,
-            value = "max over all PDF families")
-
-    for catIndex, cat in enumerate(allCats):
-        # column = firstNumEventsColumn + catIndex
-        column = firstRatioColumn + catIndex
-
-        cellNames = [ cell.coordinate for cell in cellsForMax[cat] ]
-
-        cell = ws.cell(row = row,
-                       column = column,
-                       value = "=MAX(%s)" % ",".join(cellNames)
-                       )
-
-        cell.number_format = '0.00%'
-
-        # produce the same cell with 'absolute' format
-        # so we can put them into the python files
-        # to generate the datacards for combine
-        cell = ws.cell(row = row + 1,
-                       column = column,
-                       value = "=1 + MAX(%s)" % ",".join(cellNames)
-                       )
-        
-
+    addMaxOverPDFfamilies(row)
 
 # end of loop over processes
 
