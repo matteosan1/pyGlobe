@@ -126,7 +126,7 @@ def getSumOfWeightsWorkspace(fname):
 
 # def addSumEventsAfterSelectionFields(topleft):
 
-def addPerPDFfamilyUpDownSummary(row):
+def addPerPDFfamilyUpDownSummary(row, cellsForMax):
     # adds cells taking the maximum or RMS for the sets in a PDF
 
     global allCats
@@ -147,12 +147,20 @@ def addPerPDFfamilyUpDownSummary(row):
 
             cell = ws.cell(row = row + familySize + 1,
                            column = col + plusMinusIndex,
-                           value = '=SQRT(SUMSQ(%s%d:%s%d)) / %s%d' % (colName, row,
-                                                                       colName, row + familySize - 1,
-                                                                       origCol, row)
+
+                           # relative uncertainty per PDF family
+                           # value = '=SQRT(SUMSQ(%s%d:%s%d)) / %s%d' % (colName, row,
+                           #                                             colName, row + familySize - 1,
+                           #                                             origCol, row)
+
+                           # absolute uncertainty per PDF family, normalize later
+                           value = '=SQRT(SUMSQ(%s%d:%s%d))' % (colName, row,
+                                                                colName, row + familySize - 1,
+                                                                )
                            )
 
-            cell.number_format = '0.00%'
+            # only do this for relative uncertainty 
+            # cell.number_format = '0.00%'
 
             cellsForMax.setdefault(cat,[]).append(cell)
 
@@ -163,11 +171,9 @@ def addPerPDFfamilyUpDownSummary(row):
             ##                                                            )
             ##                )
 
-
-
 #----------------------------------------------------------------------
 
-def addPerPDFfamilyNNPDFsummary(row):
+def addPerPDFfamilyNNPDFsummary(row, cellsForMax):
 
     global allCats
     global firstRatioColumn
@@ -188,28 +194,43 @@ def addPerPDFfamilyNNPDFsummary(row):
 
         cell = ws.cell(row = row + familySize + 1,
                 column = col,
-                value = '=STDEV(%s) / AVERAGE(%s)'  % (rangeDesc, rangeDesc),
+
+                # relative uncertainty per PDF family       
+                # value = '=STDEV(%s) / AVERAGE(%s)'  % (rangeDesc, rangeDesc),
+
+                # absolute uncertainty per PDF family, normalize later
+                 value = '=STDEV(%s)'  % rangeDesc,
                 )
 
-        cell.number_format = '0.00%'
+        # only do this for relative uncertainty 
+        # cell.number_format = '0.00%'
         cellsForMax.setdefault(cat,[]).append(cell)
+
 
 #----------------------------------------------------------------------
 
-def addMaxOverPDFfamilies(row):
+def addMaxOverPDFfamilies(row, nominalRow, cellsForMax):
+    # @param nominalCell is the cell with the nominal value
+    
     ws.cell(row = row,
             column = 3,
             value = "max over all PDF families")
+
+    # nominalCol = firstNominalCell.column
+    # nominalRow = firstNominalCell.row
 
     for catIndex, cat in enumerate(allCats):
         # column = firstNumEventsColumn + catIndex
         column = firstRatioColumn + catIndex
 
+        nominalCell = ws.cell(column = column,
+                              row = nominalRow)
+
         cellNames = [ cell.coordinate for cell in cellsForMax[cat] ]
 
         cell = ws.cell(row = row,
                        column = column,
-                       value = "=MAX(%s)" % ",".join(cellNames)
+                       value = "=MAX(%s) / %s" % (",".join(cellNames), nominalCell.coordinate)
                        )
 
         cell.number_format = '0.00%'
@@ -219,7 +240,7 @@ def addMaxOverPDFfamilies(row):
         # to generate the datacards for combine
         cell = ws.cell(row = row + 1,
                        column = column,
-                       value = "=1 + MAX(%s)" % ",".join(cellNames)
+                       value = "=MAX(%s) / %s" % (",".join(cellNames), nominalCell.coordinate)
                        )
         
 
@@ -393,7 +414,7 @@ for procIndex, proc in enumerate(allProcs):
         
         if pdfFamily in pdfsWithUpDown:
             if inFamilyIndex == 0:
-                addPerPDFfamilyUpDownSummary(row)
+                addPerPDFfamilyUpDownSummary(row, cellsForMax)
 
             if inFamilyIndex > 0 and inFamilyIndex % 2 == 0:
 
@@ -433,8 +454,7 @@ for procIndex, proc in enumerate(allProcs):
             # (as opposed of the observable of the average)
 
             if inFamilyIndex == 0:
-
-                addPerPDFfamilyNNPDFsummary(row)
+                    addPerPDFfamilyNNPDFsummary(row, cellsForMax)
 
             else:
                 pass
@@ -460,7 +480,11 @@ for procIndex, proc in enumerate(allProcs):
     # row = 4 + (4 + numPDFs + 3 * numPDFfamilies) * len(allProcs)
     row = 4 + numPDFs + (4 + numPDFs + 3 * numPDFfamilies) * procIndex + 3 * (numPDFfamilies - 1) + 2
 
-    addMaxOverPDFfamilies(row)
+    addMaxOverPDFfamilies(row,
+                          # row where the nominal values are (PDF index = 0)
+                          4 + 0 + (4 + numPDFs + 3 * numPDFfamilies) * procIndex,
+                          cellsForMax
+                          )
 
 # end of loop over processes
 
