@@ -112,7 +112,7 @@ for proc in allProcs:
 
 print "   "," ".join([ " %5s" % cat for cat in allCats])
 for proc in allProcs:
-    parts = [ "%5.1f%%" % (relDeviations[cat][proc] * 100) for cat in allCats ]
+    parts = [ "%+5.1f%%" % (relDeviations[cat][proc] * 100) for cat in allCats ]
 
     print "%-3s" % proc," ".join(parts)
 
