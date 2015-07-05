@@ -8,9 +8,6 @@ from  makeWS import WSProducer
 import plotfromoptree, table
 import btagutils
 
-# can be 'mean', 'up' or 'down'
-btagShiftMode = 'mean'
-
 class Analysis:
     def __init__(self, options):
         self.options = options
@@ -268,7 +265,7 @@ class Analysis:
                                                                       [ self.tree.jetet[ijet] for ijet in range(njets20) ],
                                                                       [ self.tree.jeteta[ijet] for ijet in range(njets20) ],
                                                                       [ btag1, btag2 ],
-                                                                      btagShiftMode,
+                                                                      self.options.btagShiftMode,
                                                                       )
                                                                       
                                                                       

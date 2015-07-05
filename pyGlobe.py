@@ -22,6 +22,8 @@ if __name__ == "__main__":
     parser.add_option("--jes", dest = "jesMode", choices = [ None, "up", "down"], default = None, help="run with shifted jet energy scale (for systematics)")
     parser.add_option("--sigonly", default = False, action="store_true", help="run only over signal events (useful for speeding up testing)")
 
+    parser.add_option("--btag", dest = "btagShiftMode", choices = [ "mean", "up", "down"], default = "mean", help="run with shifted btag scaling factors (for systematics)")
+
     parser.add_option("--mmin", default = 110, type = float, help="lower bound for reco mass")
     parser.add_option("--mmax", default = 160, type = float, help="upper bound for reco mass")
     
