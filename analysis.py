@@ -108,6 +108,20 @@ class Analysis:
 
         self.entries = self.tree.GetEntries()
 
+        # test 2015-07-02 using unscaled MET
+        if self.options.metfile != None:
+            # take MET from another file
+            # (for testing if the systematic uncertainties due to JES
+            # behave differently if one uses the unscaled MET)
+            self.metfile = ROOT.TFile(self.options.metfile)
+            self.mettree = self.metfile.Get("opttree")
+
+            # assume we have exactly the same order of events
+            self.mettree.SetBranchStatus("*",0)
+            self.mettree.SetBranchStatus("met",1)
+        else:
+            self.mettree = None
+
     def loop(self):
         for z in xrange(self.entries):
             if (z+1) % 10000 == 0:
@@ -190,7 +204,12 @@ class Analysis:
         id2 = self.tree.id2
         iso1 = self.tree.iso1
         iso2 = self.tree.iso2
-        met = self.tree.met
+
+        if self.mettree == None:
+            met = self.tree.met
+        else:
+            # take MET from a different tree
+            met = self.mettree.met
 
         btag1 = -9999.
         btag2 = -9999.

@@ -32,6 +32,8 @@ if __name__ == "__main__":
                       type = int,
                       help="multiply the event weights by pdf_weights[i]/pdf_weights[0] where i is given by this option. Useful for determining PDF uncertainties")
 
+    parser.add_option("--metfile", default= None, help="special test: take met variable from this file")
+
     (options, arg) = parser.parse_args()
         
     if (options.debug):
