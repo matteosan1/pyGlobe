@@ -17,9 +17,28 @@ mass = 125
 # main
 #----------------------------------------------------------------------
 
-ARGV = sys.argv[1:]
+from optparse import OptionParser
+parser = OptionParser("""
+
+  usage: %prog [options] nominal_workspace_file workspace_file_up workspace_file_down
+
+  calculates relative deviations due to JES and JER shifts
+"""
+)
+
+parser.add_option("--format",
+                  type = "choice",
+                  choices = [ "text", "csv", "python" ],
+                  default = "text",
+                  help="output format in which the results should be printed",
+                  )
+
+(options, ARGV) = parser.parse_args()
 
 fnameNominal, fnameUp, fnameDown = ARGV
+#----------------------------------------
+
+
 
 # get the number of signal events
 
@@ -102,7 +121,7 @@ for proc in allProcs:
         # check that up and down are on opposite sides of nominal
 
         if not ((up >= nom and nom >= down) or (up <= nom and nom <= down)):
-            print "WARNING: up/down are NOT on opposite sides of nominal for",cat,proc,": up=",up,"nom=",nom,"down=",down
+            print >> sys.stderr, "WARNING: up/down are NOT on opposite sides of nominal for",cat,proc,": up=",up,"nom=",nom,"down=",down
 
         # take (up - down) / (2 * nominal)
         rel = (up - down) / (2.0 * nom)
@@ -110,13 +129,27 @@ for proc in allProcs:
         relDeviations.setdefault(cat,{})[proc] = rel
 
 
-print "   "," ".join([ " %5s" % cat for cat in allCats])
-for proc in allProcs:
-    parts = [ "%+5.2f%%" % (relDeviations[cat][proc] * 100) for cat in allCats ]
+if options.format == 'csv':
+    # print in CSV format
+    print ",".join([ "%s" % cat for cat in allCats])
+    for proc in allProcs:
+        parts = [ proc ] + [ "%f" % relDeviations[cat][proc] for cat in allCats ]
 
-    print "%-3s" % proc," ".join(parts)
-
-print
-pprint(relDeviations)
+        print ",".join(parts)
     
+    
+elif options.format == 'text':
+    print "   "," ".join([ " %5s" % cat for cat in allCats])
+    for proc in allProcs:
+        parts = [ "%+5.2f%%" % (relDeviations[cat][proc] * 100) for cat in allCats ]
+
+        print "%-3s" % proc," ".join(parts)
+
+    print
+elif options.format == 'python':
+    # this is for using it in python files read when
+    # generating the combine datacards
+    pprint(relDeviations)
+else:
+    raise Exception("internal error")
         
