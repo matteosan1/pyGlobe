@@ -28,7 +28,7 @@ parser = OptionParser("""
 
 parser.add_option("--format",
                   type = "choice",
-                  choices = [ "text", "csv", "python" ],
+                  choices = [ "text", "csv", "python", "csv-numevents" ],
                   default = "text",
                   help="output format in which the results should be printed",
                   )
@@ -150,6 +150,21 @@ elif options.format == 'python':
     # this is for using it in python files read when
     # generating the combine datacards
     pprint(relDeviations)
+
+elif options.format == "csv-numevents":
+    # print the absolute number of signal events in CSV format
+    
+    print ",".join([ "proc", "shift", "" ] + [ "%s" % cat for cat in allCats])
+    for proc in allProcs:
+        for shift in [ "nom", "up", "down"]:
+            parts = [ proc, shift, "" ] + [ "%f" % numSigEvents[shift][cat][proc] for cat in allCats ]
+
+            print ",".join(parts)
+
+        print
+        print
+        print
+
 else:
     raise Exception("internal error")
         
