@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys
+import sys, os
 
 # compare two CSV files and plot migrations of event (weights) between them
 
@@ -69,11 +69,16 @@ ARGV = sys.argv[1:]
 
 assert len(ARGV) == 3
 
-# -225 for 125 GeV ggh
-# -325 for 125 VBF
 itype = int(ARGV.pop(0))
 
-datas = [ readFile(fname) for fname in ARGV ]
+procName = {
+    -225:  "125 GeV ggh",
+    -325:  "125 GeV vbf",
+    }.get(itype,"itype=" + str(itype))
+
+fnames = ARGV
+
+datas = [ readFile(fname) for fname in fnames ]
 
 for data, fname in zip(datas, ARGV):
     if not data.has_key(itype):
@@ -146,8 +151,12 @@ if True:
 
 
 #----------
-# print results
+# calculate and print results
 #----------
+import numpy
+
+# matrix to plot 
+matrixToPlot = numpy.zeros((len(allCats), len(allCats) + 3))
 
 print "category migrations",fname,"->",fname
 
@@ -157,31 +166,75 @@ print "dest:    | " + " | ".join([ "%8s" % part for part in parts])
 
 print "src cat"
 
-for srcCat in allCats:
+for srcCatIndex, srcCat in enumerate(allCats):
 
     print "%8s |" % ("cat%d" % srcCat),
 
     if printRelative:
-        parts = [ "%.1f%%" % (comingIn[srcCat] / numEventsBefore[srcCat] * 100) ]
+        value = comingIn[srcCat] / numEventsBefore[srcCat] * 100
+        parts = [ "%.1f%%" % value ]
     else:
-        parts = [ "%.2f" % comingIn[srcCat] ]
+        value = comingIn[srcCat]
+        parts = [ "%.2f" %  value ]
 
-    for destCat in allCats:
+    matrixToPlot[srcCatIndex, 0] = value
+
+    for destCatIndex, destCat in enumerate(allCats):
         if printRelative:
-            parts.append("%.1f%%" % (migrationMatrix[srcCat][destCat] / numEventsBefore[srcCat] * 100))
+            value = migrationMatrix[srcCat][destCat] / numEventsBefore[srcCat] * 100
+            parts.append("%.1f%%" % value)
         else:
-            parts.append("%.2f" % migrationMatrix[srcCat][destCat])
+            value = migrationMatrix[srcCat][destCat]
+            parts.append("%.2f" % value)
+
+        matrixToPlot[srcCatIndex, 1 + destCatIndex] = value
 
     # change in number of events
     totalChange = numEventsAfter[srcCat] - numEventsBefore[srcCat]
 
     if printRelative:
-        parts.append("%.1f%%" % (goingOut[srcCat] / numEventsBefore[srcCat] * 100))
-        parts.append("%+.1f%%" % (totalChange / numEventsBefore[srcCat] * 100))
+        value1 = goingOut[srcCat] / numEventsBefore[srcCat] * 100
+        parts.append("%.1f%%" % value1)
+
+        value2 = (totalChange / numEventsBefore[srcCat] * 100)
+        parts.append("%+.1f%%" % value2)
     else:
-        parts.append("%.2f" % goingOut[srcCat])
-        parts.append("%+.2f" % totalChange)
+        value1 = goingOut[srcCat]
+        parts.append("%.2f" % value1)
+
+        value2 = totalChange
+        parts.append("%+.2f" % value2)
+
+    matrixToPlot[srcCatIndex, 1 + len(allCats)] = value1
+    matrixToPlot[srcCatIndex, 2 + len(allCats)] = value2
         
     print " | ".join([ "%8s" % part for part in parts])
 
+#----------
+# plot
+#----------
 
+import pylab
+pylab.figure(facecolor='white', figsize=(10,10))
+pylab.imshow(matrixToPlot, 
+             cmap=pylab.cm.Blues,
+             interpolation='nearest',
+             )
+
+# print the numbers on the plot
+for i in range(matrixToPlot.shape[0]):
+    for j in xrange(matrixToPlot.shape[1]):
+        pylab.gca().annotate("%.1f%%" % matrixToPlot[i][j], xy=(j, i), 
+                             horizontalalignment='center',
+                             verticalalignment='center')
+
+pylab.yticks(range(len(allCats)), [ 'cat%d' % cat for cat in allCats])
+
+xlabels = [ "in" ] + [ 'cat%d' % cat for cat in allCats] + [ "out", "change" ]
+pylab.xticks(range(len(xlabels)), xlabels)
+
+pylab.ylabel('source category')
+pylab.title("%s -> %s (%s)" % tuple([os.path.splitext(fname)[0] for fname in fnames] + [ procName ]))
+
+
+pylab.show()
