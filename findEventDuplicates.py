@@ -37,23 +37,32 @@ for fname in ARGV:
 
     unique = True
 
+    # allKeys = {}
+
     for index in range(tree.GetEntries()):
         tree.GetEntry(index)
 
-        if not data.has_key(tree.itype):
-            data[tree.itype] = collections.Counter()
+        run, lumis, event, itype = tree.run, tree.lumis, int(tree.event + 0.5), tree.itype
 
-        key = (tree.run, tree.lumis, tree.event)
+        if not data.has_key(itype):
+            data[itype] = collections.Counter()
 
-        if data[tree.itype][key] != 0:
-            print "run=",tree.run,"lumi=",tree.lumis,"event=",tree.event,"found more than once for itype",tree.itype
+        key = (run, lumis, event)
+
+        if data[itype][key] != 0:
+            print "run=",run,"lumi=",lumis,"event=",event,"found more than once for itype",itype
             unique = False
 
-        data[tree.itype][key] += 1
-
+        data[itype][key] += 1
+        # allKeys.setdefault(itype,[]).append(key)
 
     if unique:
         print "all events in file",fname,"are unique"
+
+
+        # cross checking
+        # for thisAllKeys in allKeys.values():
+        #    assert len(thisAllKeys) == len(set(thisAllKeys))
 
     ROOT.gROOT.cd()
     fin.Close()
