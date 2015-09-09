@@ -34,6 +34,9 @@ if __name__ == "__main__":
 
     parser.add_option("--metfile", default= None, help="special test: take met variable from this file")
 
+    parser.add_option("--eventlist", default= None, help="write a list of selected events per category to a .csv file (warning: will overwrite existing files without confirmation)",
+                      type = str)
+
     (options, arg) = parser.parse_args()
         
     if (options.debug):

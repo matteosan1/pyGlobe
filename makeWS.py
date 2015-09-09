@@ -49,6 +49,21 @@ class WSProducer:
 
         self.massWithWeight.add(self.mass)
 
+        #----------
+        
+        if options.eventlist != None:
+            self.eventListFile = open(options.eventlist, "w")
+            print >> self.eventListFile,",".join([
+                "run",
+                "lumisection",
+                "event",
+                "itype",
+                "weight",
+                "cat",
+                ])
+        else:
+            self.eventListFile = None
+
     #----------------------------------------
     
     def setGlobalParameters(self, lumi):
@@ -173,9 +188,15 @@ class WSProducer:
 
         self.workspace.writeToFile(self.options.wsoutFname)
 
+        #----------
+
+        if self.eventListFile != None:
+            self.eventListFile.close()
+            self.eventListFile = None
+
     #----------------------------------------
 
-    def fillDataset(self, itype, cat, mass, weight):
+    def fillDataset(self, runNumber, lumiSection, eventNumber, itype, cat, mass, weight):
 
         # the underflow/overflow behaviour seems to be
         # such that in the dataset we get e.g. lots
@@ -234,6 +255,19 @@ class WSProducer:
                     name = "sig_Hem" + chargeStr + "_%s_%d_cat%d" % (proc, massHyp, cat)
 
                 self.datahists[name].add(self.set, weight * weightFactor)
+
+        #----------
+        if self.eventListFile != None:
+
+            print >> self.eventListFile, ",".join([ str(x) for x in
+                                                    [ runNumber,
+                                                      lumiSection,
+                                                      eventNumber,
+                                                      itype,
+                                                      weight,
+                                                      cat
+                                                     ] ])
+            
 
     #----------------------------------------
 

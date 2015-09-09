@@ -58,6 +58,8 @@ class Analysis:
 
         self.tree.SetBranchStatus("*",0)
         self.tree.SetBranchStatus("run",1)
+        self.tree.SetBranchStatus("lumis",1)
+        self.tree.SetBranchStatus("event",1)
         self.tree.SetBranchStatus("itype",1)
         self.tree.SetBranchStatus("weight",1)
         self.tree.SetBranchStatus("pairs", 1)
@@ -314,7 +316,8 @@ class Analysis:
                 #----------
                 # add event to workspace
                 #----------
-                self.wsProducer.fillDataset(itype, wsCats, masses[p], weight)
+                self.wsProducer.fillDataset(self.tree.run, self.tree.lumis, int(self.tree.event + 0.5),
+                                            itype, wsCats, masses[p], weight)
             
                 #----------
 
