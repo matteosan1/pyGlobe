@@ -180,9 +180,32 @@ for srcCatIndex, srcCat in enumerate(allCats):
     matrixToPlot[srcCatIndex, 0] = value
 
     for destCatIndex, destCat in enumerate(allCats):
+        # the category X to category Y matrix
+
         if printRelative:
-            value = migrationMatrix[srcCat][destCat] / numEventsBefore[srcCat] * 100
+            if srcCat == destCat:
+                # diagonal: how many events stay in the same category
+                value = migrationMatrix[srcCat][destCat] / numEventsBefore[srcCat] * 100
+            else:
+                # off-diagonal
+
+                netChange = sum([
+                    # going out of this category
+                    - migrationMatrix[srcCat][destCat],
+
+                    # coming in from another category
+                    + migrationMatrix[destCat][srcCat]
+                    
+                    ])
+                value = netChange / numEventsBefore[srcCat] * 100
+
+
+            # print the net relative change and also put it into the matrix
+            # (for the color plot)
+
             parts.append("%.1f%%" % value)
+
+
         else:
             value = migrationMatrix[srcCat][destCat]
             parts.append("%.2f" % value)
@@ -236,7 +259,6 @@ for i,srcCat in zip(range(matrixToPlot.shape[0]), allCats):
         if printRelative:
             if j == i + 1:
                 # the 'diagonal'
-
                 # what fraction of events stay in this category
                 text = "%.1f%%" % matrixToPlot[i][j]
             elif j == 0 or j == 1 + len(allCats):
@@ -248,8 +270,9 @@ for i,srcCat in zip(range(matrixToPlot.shape[0]), allCats):
                 text = "%+.1f%%" % matrixToPlot[i][j]
 
             else:
+                # a 'catX vs. catY' block
                 # what fraction goes out of this category
-                text = "%.1f%% out" % matrixToPlot[i][j]
+                text = "%.1f%% out" % (migrationMatrix[srcCat][destCat] / numEventsBefore[srcCat] * 100)
 
                 # what fraction (relative to the original
                 # number of events in srcCat)
@@ -275,7 +298,7 @@ xlabels = [ "in" ] + [ 'cat%d' % cat for cat in allCats] + [ "out", "change" ]
 pylab.xticks(range(len(xlabels)), xlabels)
 
 pylab.ylabel('category before')
-pylab.xlabel('category after')
+# pylab.xlabel('category after')
 pylab.title("%s -> %s (%s)" % tuple([os.path.splitext(fname)[0] for fname in fnames] + [ procName ]))
 
 
