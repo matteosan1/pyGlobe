@@ -215,25 +215,67 @@ for srcCatIndex, srcCat in enumerate(allCats):
 #----------
 
 import pylab
-pylab.figure(facecolor='white', figsize=(10,10))
+pylab.figure(facecolor='white', figsize=(13,10))
 pylab.imshow(matrixToPlot, 
              cmap=pylab.cm.Blues,
              interpolation='nearest',
              )
 
 # print the numbers on the plot
-for i in range(matrixToPlot.shape[0]):
+assert len(allCats) == matrixToPlot.shape[0]
+for i,srcCat in zip(range(matrixToPlot.shape[0]), allCats):
     for j in xrange(matrixToPlot.shape[1]):
-        pylab.gca().annotate("%.1f%%" % matrixToPlot[i][j], xy=(j, i), 
+
+        if j >= 1 and j < 1 + len(allCats):
+            destCat = j - 1
+        else:
+            destCat = None
+        
+
+        # special labels for relative mode
+        if printRelative:
+            if j == i + 1:
+                # the 'diagonal'
+
+                # what fraction of events stay in this category
+                text = "%.1f%%" % matrixToPlot[i][j]
+            elif j == 0 or j == 1 + len(allCats):
+                # the 'in' or 'out' columns
+                text = "%.1f%%" % matrixToPlot[i][j]
+
+            elif j == 2 + len(allCats):
+                # the 'change' column
+                text = "%+.1f%%" % matrixToPlot[i][j]
+
+            else:
+                # what fraction goes out of this category
+                text = "%.1f%% out" % matrixToPlot[i][j]
+
+                # what fraction (relative to the original
+                # number of events in srcCat)
+                if destCat != None:
+                    text += "\n%.1f%% in" % (migrationMatrix[destCat][srcCat] / numEventsBefore[srcCat] * 100)
+
+
+        else:
+            # absolute number of events
+            text = "%.1f" % matrixToPlot[i][j]
+
+        pylab.gca().annotate(text,
+                             
+                             xy=(j, i), 
                              horizontalalignment='center',
-                             verticalalignment='center')
+                             verticalalignment='center',
+                             fontsize = 10,
+                             )
 
 pylab.yticks(range(len(allCats)), [ 'cat%d' % cat for cat in allCats])
 
 xlabels = [ "in" ] + [ 'cat%d' % cat for cat in allCats] + [ "out", "change" ]
 pylab.xticks(range(len(xlabels)), xlabels)
 
-pylab.ylabel('source category')
+pylab.ylabel('category before')
+pylab.xlabel('category after')
 pylab.title("%s -> %s (%s)" % tuple([os.path.splitext(fname)[0] for fname in fnames] + [ procName ]))
 
 
