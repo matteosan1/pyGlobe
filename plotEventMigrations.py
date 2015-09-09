@@ -64,8 +64,26 @@ def countEventsPerCat(allCats, data):
 #----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
+from optparse import OptionParser
+parser = OptionParser("""
 
-ARGV = sys.argv[1:]
+  usage: %prog [options] before.csv after.csv
+
+  plots category migration when changing from before.csv to after.csv
+
+"""
+)
+
+parser.add_option("-o",
+                  dest = "outputFile",
+                  type = str,
+                  default = None,
+                  help="file where the save the plot to",
+                  )
+
+(options, ARGV) = parser.parse_args()
+
+#----------------------------------------
 
 assert len(ARGV) == 3
 
@@ -302,4 +320,8 @@ pylab.ylabel('category before')
 pylab.title("%s -> %s (%s)" % tuple([os.path.splitext(fname)[0] for fname in fnames] + [ procName ]))
 
 
-pylab.show()
+if options.outputFile != None:
+    pylab.savefig(options.outputFile)
+else:
+    # assume we run interactively
+    pylab.show()
