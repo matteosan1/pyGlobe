@@ -7,7 +7,7 @@ gcs = []
 
 #----------------------------------------------------------------------
 
-def readROOTtree(tree, itype, eventKeys, expressions):
+def readROOTtree(tree, itype, eventKeys, expressions, cutexpr = None):
     # eventKeys should be a list of (run, lumisection, event)
     # we will return the values in the same order
     
@@ -21,6 +21,8 @@ def readROOTtree(tree, itype, eventKeys, expressions):
 
     print "requested events:",len(eventKeysMap)
     numEventsFound = 0
+
+    numEventsSelected = 0
 
     # loop over the entries
     for i in range(tree.GetEntries()):
@@ -40,6 +42,12 @@ def readROOTtree(tree, itype, eventKeys, expressions):
 
             numEventsFound += 1
 
+            # check if the event passes the cut or not
+            if cutexpr != None and not eval(cutexpr):
+                continue
+
+            numEventsSelected += 1
+
             # store variables
             for expressionIndex, expression in enumerate(expressions):
                 retval[expressionIndex][position] = eval("tree." + expression)
@@ -49,6 +57,9 @@ def readROOTtree(tree, itype, eventKeys, expressions):
 
     # check that we've found all events
     assert numEventsFound == len(eventKeysMap)
+
+    print "selected %d out of %d events" % (numEventsSelected, numEventsFound)
+    
 
     return retval
 
@@ -126,7 +137,9 @@ for cat in allCats:
             print "reading tree from file",fname
 
             print "fname=",fname
-            eventDatas.append(readROOTtree(tree, itype, eventKeys, expressions ))
+            eventDatas.append(readROOTtree(tree, itype, eventKeys, expressions,
+                                           cutexpr = "tree.njets20 > %d" % jetIndex
+                                           ))
 
         # produce an ntuple with the before/after energies
         ntuple = ROOT.TNtuple("ntuple","ntuple","before:after"); gcs.append(ntuple)
@@ -134,7 +147,11 @@ for cat in allCats:
         assert len(eventDatas[0][0]) == len(eventDatas[1][0])
 
         for before, after in zip(eventDatas[0][0], eventDatas[1][0]):
-            ntuple.Fill(before,after)
+            if before != None and after != None:
+                ntuple.Fill(before,after)
+            else:
+                # print "UUU before=",before,"after=",after
+                pass
 
         # make plots
         gcs.append(ROOT.TCanvas())
