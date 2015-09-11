@@ -158,7 +158,8 @@ for cat in allCats:
         
         ntuple.SetMarkerStyle(20)
         ntuple.Draw("(after - before) / before:before")
-        
-        
+
+        htemp = ntuple.GetHistogram()
+        htemp.SetTitle(plotEventMigrations.itypeToProcName.get(itype,"(unknown process)") + " cat%d" % cat + " jet %d" % jetIndex)
 
 
