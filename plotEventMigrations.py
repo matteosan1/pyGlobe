@@ -12,6 +12,13 @@ printRelative = True
 
 #----------------------------------------------------------------------
 
+itypeToProcName = {
+    -225:  "125 GeV ggh",
+    -325:  "125 GeV vbf",
+    }
+
+#----------------------------------------------------------------------
+
 def readFile(fname):
     import csv
 
@@ -91,10 +98,7 @@ if __name__ == '__main__':
 
     itype = int(ARGV.pop(0))
 
-    procName = {
-        -225:  "125 GeV ggh",
-        -325:  "125 GeV vbf",
-        }.get(itype,"itype=" + str(itype))
+    procName = itypeToProcName.get(itype,"itype=" + str(itype))
 
     fnames = ARGV
 
