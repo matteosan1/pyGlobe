@@ -132,6 +132,10 @@ class Analysis:
                 sys.stdout.flush()
 
             self.tree.GetEntry(z)
+
+            if self.mettree != None:
+                self.mettree.GetEntry(z)
+
             try:
                 self.processPair()
             except Exception, ex:
