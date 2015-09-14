@@ -17,6 +17,11 @@ itypeToProcName = {
     -325:  "125 GeV vbf",
     }
 
+itypeToShortProcName = {
+    -225:  "ggh",
+    -325:  "vbf",
+    }
+
 #----------------------------------------------------------------------
 
 def readFile(fname):
