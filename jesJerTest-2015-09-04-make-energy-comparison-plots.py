@@ -13,16 +13,21 @@ for itype, cats in (
     [-225, [0,1,2,3,4,5,6,7,8 ]],
     [-325, [9,10]]):
 
-    for mode in [ 'jec', 'jer']:
+    for fileNamePart, mode, modeName in [
+        ('jec', 'jes', 'jet energy scale change'),
+        ('jer', 'jer', 'jet energy resolution change')]:
+
         cmdParts = [
             "../compareJetEnergies.py",
             '-o "jet-energies-' + mode + '-cat{cat}-{proc}.png"',
             "--cats " + ",".join([ str(x) for x in cats]),
+            '--mode "%s"' % modeName, # for the plot title
+
             '--',
             str(itype),
             'nominal.csv',
             os.path.join(scriptDir, '../data/2015-07-01-hemu_jet_syst_jec_no.root'),
-            os.path.join(scriptDir, '../data/2015-07-01-hemu_jet_syst_%s_up.root' % mode),
+            os.path.join(scriptDir, '../data/2015-07-01-hemu_jet_syst_%s_up.root' % fileNamePart),
             ]
 
         cmd = " ".join(cmdParts)
