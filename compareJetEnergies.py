@@ -91,6 +91,12 @@ parser.add_option("--cats",
                   help="comma separated list of category numbers (default is to run over all categories)",
                   )
 
+parser.add_option("--mode",
+                  type = str,
+                  default = None,
+                  help="mode name (e.g. JES or JER) for plot title",
+                  )
+
 (options, ARGV) = parser.parse_args()
 
 if options.categories != None:
@@ -201,7 +207,19 @@ for cat in allCats:
     htemp.SetXTitle("Jet ET [GeV]")
     htemp.SetYTitle("(modified - unmodified)/unmodified [%]")
 
-    htemp.SetTitle(plotEventMigrations.itypeToProcName.get(itype,"(unknown process)") + " cat%d" % cat)
+    titleParts = [
+        plotEventMigrations.itypeToProcName.get(itype,"(unknown process)"),
+        "cat%d" % cat
+        ]
+
+    if options.mode != None:
+        titleParts.append(options.mode)
+
+    title = " ".join(titleParts)
+
+    htemp.SetTitle(title)
+
+    ROOT.gPad.SetGrid()
 
     if options.outputFile != None:
         shortProcName = plotEventMigrations.itypeToShortProcName[itype] 
