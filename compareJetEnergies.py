@@ -67,7 +67,27 @@ def readROOTtree(tree, itype, eventKeys, expressions, cutexpr = None):
 # main
 #----------------------------------------------------------------------
 
-ARGV = sys.argv[1:]
+from optparse import OptionParser
+parser = OptionParser("""
+
+  usage: %prog [options] before.csv after.csv
+
+  plots category migration when changing from before.csv to after.csv
+
+"""
+)
+
+parser.add_option("-o",
+                  dest = "outputFile",
+                  type = str,
+                  default = None,
+                  help="file names where the save the plot to, supports {..} templates",
+                  )
+
+
+(options, ARGV) = parser.parse_args()
+
+#----------------------------------------
 
 itype, csvFile, rootFileNominal, rootFileShifted = ARGV
 itype = int(itype)
@@ -170,3 +190,10 @@ for cat in allCats:
 
     htemp.SetTitle(plotEventMigrations.itypeToProcName.get(itype,"(unknown process)") + " cat%d" % cat)
 
+    if options.outputFile != None:
+        shortProcName = plotEventMigrations.itypeToShortProcName[itype] 
+
+        ROOT.gPad.SaveAs(options.outputFile.format(cat = cat,
+                                                   itype = itype,
+                                                       proc = shortProcName))
+        
