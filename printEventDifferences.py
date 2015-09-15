@@ -19,13 +19,6 @@ if __name__ == '__main__':
     """
     )
 
-    parser.add_option("-o",
-                      dest = "outputFile",
-                      type = str,
-                      default = None,
-                      help="file where the save the plot to",
-                      )
-
     (options, ARGV) = parser.parse_args()
 
     #----------------------------------------
