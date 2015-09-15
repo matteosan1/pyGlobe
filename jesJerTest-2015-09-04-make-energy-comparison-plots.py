@@ -2,6 +2,8 @@
 
 import sys, os
 
+scriptDir = os.path.abspath(os.path.dirname(__file__))
+
 # jet energy scale
 # ../data/2015-07-01-hemu_jet_syst_jec_up.root   $OUTDIR/jes-up.root   
 # ../data/2015-07-01-hemu_jet_syst_jec_down.root $OUTDIR/jes-down.root 
@@ -19,8 +21,8 @@ for itype, cats in (
             '--',
             str(itype),
             'nominal.csv',
-            '../../data/2015-07-01-hemu_jet_syst_jec_no.root',
-            '../../data/2015-07-01-hemu_jet_syst_%s_up.root' % mode,
+            os.path.join(scriptDir, '../data/2015-07-01-hemu_jet_syst_jec_no.root'),
+            os.path.join(scriptDir, '../data/2015-07-01-hemu_jet_syst_%s_up.root' % mode),
             ]
 
         cmd = " ".join(cmdParts)
