@@ -84,8 +84,17 @@ parser.add_option("-o",
                   help="file names where the save the plot to, supports {..} templates",
                   )
 
+parser.add_option("--cats",
+                  dest = "categories",
+                  type = str,
+                  default = None,
+                  help="comma separated list of category numbers (default is to run over all categories)",
+                  )
 
 (options, ARGV) = parser.parse_args()
+
+if options.categories != None:
+    options.categories = [ int(x) for x in options.categories.split(",") ]
 
 #----------------------------------------
 
@@ -99,7 +108,11 @@ csvData = plotEventMigrations.readFile(csvFile)
 
 csvData = csvData[itype]
 
-allCats = sorted(set( [ line['cat'] for line in csvData.values() ]))
+
+if options.categories == None:
+    allCats = sorted(set( [ line['cat'] for line in csvData.values() ]))
+else:
+    allCats = options.categories
 
 
 #----------
