@@ -158,8 +158,15 @@ for cat in allCats:
         
         ntuple.SetMarkerStyle(20)
         ntuple.Draw("(after - before) / before:before")
+    
+    # make plots
+    gcs.append(ROOT.TCanvas())
 
-        htemp = ntuple.GetHistogram()
-        htemp.SetTitle(plotEventMigrations.itypeToProcName.get(itype,"(unknown process)") + " cat%d" % cat + " jet %d" % jetIndex)
 
+    htemp = ntuple.GetHistogram()
+
+    htemp.SetXTitle("Jet ET [GeV]")
+    htemp.SetYTitle("(modified - unmodified)/unmodified [%]")
+
+    htemp.SetTitle(plotEventMigrations.itypeToProcName.get(itype,"(unknown process)") + " cat%d" % cat)
 
