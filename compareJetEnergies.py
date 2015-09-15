@@ -160,6 +160,11 @@ for cat in allCats:
     # find events for this category
     eventKeys = [ key for key, line in csvData.items() if line['cat'] == cat ]
 
+    # produce an ntuple with the before/after energies
+    ntuple = ROOT.TNtuple("ntuple","ntuple","before:after"); gcs.append(ntuple)
+
+    # for categories with more than one jet,
+    # fill all jets into the same ntuple
     for jetIndex in range(maxNumJets):
         expressions = [ "jetet[%d]" % jetIndex ]
 
@@ -174,9 +179,6 @@ for cat in allCats:
                                            cutexpr = "tree.njets20 > %d" % jetIndex
                                            ))
 
-        # produce an ntuple with the before/after energies
-        ntuple = ROOT.TNtuple("ntuple","ntuple","before:after"); gcs.append(ntuple)
-
         assert len(eventDatas[0][0]) == len(eventDatas[1][0])
 
         for before, after in zip(eventDatas[0][0], eventDatas[1][0]):
@@ -186,15 +188,13 @@ for cat in allCats:
                 # print "UUU before=",before,"after=",after
                 pass
 
-        # make plots
-        gcs.append(ROOT.TCanvas())
-        
-        ntuple.SetMarkerStyle(20)
-        ntuple.Draw("(after - before) / before:before")
+    # end of loop over jet indices
     
     # make plots
     gcs.append(ROOT.TCanvas())
 
+    ntuple.SetMarkerStyle(20)
+    ntuple.Draw("(after - before) * 100.0 / before:before")
 
     htemp = ntuple.GetHistogram()
 
