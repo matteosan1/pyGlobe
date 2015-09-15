@@ -9,9 +9,9 @@ scriptDir = os.path.abspath(os.path.dirname(__file__))
 # ../data/2015-07-01-hemu_jet_syst_jec_down.root $OUTDIR/jes-down.root 
 # ../data/2015-07-01-hemu_jet_syst_jec_no.root   $OUTDIR/nominal.root  
 
-for itype in (
-    -225,
-    # -325
+for itype, procname in (
+    [-225, "ggh"],
+    # [ -325, "vbf" ],
     ):
 
     for mode in [ 'jes', 'jer']:
@@ -29,8 +29,9 @@ for itype in (
                 mode,
                 src,
                 "to",
-                dest
-                ]) + 'cat{cat}-{proc}.png"',
+                dest,
+                procname,
+                ]) + '.png"',
                 '--',
                 str(itype),
                 src + '.csv',
