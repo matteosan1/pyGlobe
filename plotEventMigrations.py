@@ -97,19 +97,21 @@ if __name__ == '__main__':
 
     parser.add_option("--merge-cats",
                       dest = "mergeCats",
-                      type = str,
-                      default = None,
-                      help="comma separated list of categories to be treated as one. All events in these categories will be assigned to the first one in the list",
+                      action = "append",
+                      default = [],
+                      help="comma separated list of categories to be treated as one. All events in these categories will be assigned to the first one in the list. This option can be specified more than once to specify multiple groups.",
                       )
 
     (options, ARGV) = parser.parse_args()
 
-    if options.mergeCats != None:
-        options.mergeCats = [ int(i) for i in options.mergeCats.split(',') ]
+    if options.mergeCats:
+        options.mergeCats = [ [ int(i) for i in group.split(',') ] for group in options.mergeCats ]
 
-        if len(options.mergeCats) < 2:
-            print >> sys.stderr,"must give at least two categories for --merge-cats"
-            sys.exit(1)
+        for group in options.mergeCats:
+
+            if len(group) < 2:
+                print >> sys.stderr,"must give at least two categories for --merge-cats"
+                sys.exit(1)
 
     #----------------------------------------
 
@@ -139,13 +141,15 @@ if __name__ == '__main__':
     # initialize category mapping for merging categories
     #----------
     # user specified mapping
-    if options.mergeCats != None:
+    if options.mergeCats:
 
         # the identity matrix
         catMapping = dict([ (cat, cat) for cat in allCats])
 
-        for cat in options.mergeCats[1:]:
-            catMapping[cat] = options.mergeCats[0]
+        # TODO: should check that there is no overlap between groups...
+        for group in options.mergeCats:
+            for cat in group[1:]:
+                catMapping[cat] = group[0]
 
         # apply the mapping
         for data in datas:
