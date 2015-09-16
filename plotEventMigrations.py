@@ -95,7 +95,21 @@ if __name__ == '__main__':
                       help="file where the save the plot to",
                       )
 
+    parser.add_option("--merge-cats",
+                      dest = "mergeCats",
+                      type = str,
+                      default = None,
+                      help="comma separated list of categories to be treated as one. All events in these categories will be assigned to the first one in the list",
+                      )
+
     (options, ARGV) = parser.parse_args()
+
+    if options.mergeCats != None:
+        options.mergeCats = [ int(i) for i in options.mergeCats.split(',') ]
+
+        if len(options.mergeCats) < 2:
+            print >> sys.stderr,"must give at least two categories for --merge-cats"
+            sys.exit(1)
 
     #----------------------------------------
 
@@ -120,6 +134,25 @@ if __name__ == '__main__':
 
     # get a list of all categories
     allCats = sorted(set( [ line['cat'] for line in data.values() for data in datas ]))
+
+    #----------
+    # initialize category mapping for merging categories
+    #----------
+    # user specified mapping
+    if options.mergeCats != None:
+
+        # the identity matrix
+        catMapping = dict([ (cat, cat) for cat in allCats])
+
+        for cat in options.mergeCats[1:]:
+            catMapping[cat] = options.mergeCats[0]
+
+        # apply the mapping
+        for data in datas:
+            for line in data.values():
+                line['cat'] = catMapping[line['cat']]
+
+        allCats = sorted(set(catMapping.values()))
 
     #----------
     # count number of events (per category) before
@@ -279,7 +312,7 @@ if __name__ == '__main__':
         for j in xrange(matrixToPlot.shape[1]):
 
             if j >= 1 and j < 1 + len(allCats):
-                destCat = j - 1
+                destCat = allCats[j - 1]
             else:
                 destCat = None
 
