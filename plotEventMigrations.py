@@ -301,10 +301,10 @@ if __name__ == '__main__':
 
     import pylab
     pylab.figure(facecolor='white', figsize=(13,10))
-    pylab.imshow(matrixToPlot, 
-                 cmap=pylab.cm.Blues,
-                 interpolation='nearest',
-                 )
+    image = pylab.imshow(matrixToPlot, 
+                         cmap=pylab.cm.Blues,
+                         interpolation='nearest',
+                         )
 
     # print the numbers on the plot
     assert len(allCats) == matrixToPlot.shape[0]
@@ -346,12 +346,27 @@ if __name__ == '__main__':
                 # absolute number of events
                 text = "%.1f" % matrixToPlot[i][j]
 
+            #----------
+            # determine color of label based on color of background
+            #----------
+            value = image.get_array()[i,j]
+            color = image.cmap(image.norm(value))
+
+            # ignore alpha
+            colorNorm = numpy.linalg.norm(color[:-3])
+
+            if colorNorm > 0.5:
+                labelColor = 'black'
+            else:
+                labelColor = 'white'
+
             pylab.gca().annotate(text,
 
                                  xy=(j, i), 
                                  horizontalalignment='center',
                                  verticalalignment='center',
                                  fontsize = 10,
+                                 color = labelColor,
                                  )
 
     pylab.yticks(range(len(allCats)), [ 'cat%d' % cat for cat in allCats])
