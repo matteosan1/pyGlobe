@@ -81,7 +81,7 @@ if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser("""
 
-      usage: %prog [options] before.csv after.csv
+      usage: %prog [options] itype before.csv after.csv
 
       plots category migration when changing from before.csv to after.csv
 
