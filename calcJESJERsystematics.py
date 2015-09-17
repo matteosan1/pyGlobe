@@ -28,9 +28,15 @@ parser = OptionParser("""
 
 parser.add_option("--format",
                   type = "choice",
-                  choices = [ "text", "csv", "python", "csv-numevents" ],
+                  choices = [ "text", "csv", "python", "csv-numevents", "csv-numentries" ],
                   default = "text",
                   help="output format in which the results should be printed",
+                  )
+
+parser.add_option("--unbinned",
+                  default = False,
+                  action = "store_true",
+                  help="use the unbinned datasets instead of the binned ones (e.g. useful with --format csv-numentries which otherwise just returns the number of bins)",
                   )
 
 (options, ARGV) = parser.parse_args()
@@ -47,7 +53,8 @@ fnameNominal, fnameUp, fnameDown = ARGV
 # third index is the signal process
 # value is the number of expected signal events
 
-numSigEvents = {}
+numSigEvents = {} # number of expected events
+numSigEntries = {} # number of MC events (for checks)
 
 allCats = None
 allProcs = None
@@ -74,29 +81,31 @@ for fname, typename in  ((fnameNominal, "nom"),
         for proc in allProcs:
 
             # e.g. sig_Hem_unbinned_vbf_120_cat3
-            name = "_".join([
-                "sig",
-                "Hem",
-                "unbinned",
-                proc,
-                str(mass),
-                cat
-                ])
-
-            # binned dataset
-            # e.g. sig_Hem_vbf_115_cat10
-            name = "_".join([
-                "sig",
-                "Hem",
-                proc,
-                str(mass),
-                cat
-                ])
+            if options.unbinned:
+                name = "_".join([
+                    "sig",
+                    "Hem",
+                    "unbinned",
+                    proc,
+                    str(mass),
+                    cat
+                    ])
+            else:
+                # binned dataset
+                # e.g. sig_Hem_vbf_115_cat10
+                name = "_".join([
+                    "sig",
+                    "Hem",
+                    proc,
+                    str(mass),
+                    cat
+                    ])
 
             # get the signal MC dataset
             ds = utils.getObj(ws, name)
 
             numSigEvents.setdefault(typename, {}).setdefault(cat,{})[proc] = ds.sumEntries()
+            numSigEntries.setdefault(typename, {}).setdefault(cat,{})[proc] = ds.numEntries()
 
         # end of loop over signal processes
     # end of loop over categories
@@ -151,13 +160,21 @@ elif options.format == 'python':
     # generating the combine datacards
     pprint(relDeviations)
 
-elif options.format == "csv-numevents":
+elif options.format in ("csv-numevents", "csv-numentries"):
     # print the absolute number of signal events in CSV format
+    if options.format == "csv-numevents":
+        theData = numSigEvents
+        theFormat = "%f"
+    elif options.format == 'csv-numentries':
+        theData = numSigEntries
+        theFormat = "%d"
+    else:
+        raise Exception("internal error")
     
     print ",".join([ "proc", "shift", "" ] + [ "%s" % cat for cat in allCats])
     for proc in allProcs:
         for shift in [ "nom", "up", "down"]:
-            parts = [ proc, shift, "" ] + [ "%f" % numSigEvents[shift][cat][proc] for cat in allCats ]
+            parts = [ proc, shift, "" ] + [ theFormat % theData[shift][cat][proc] for cat in allCats ]
 
             print ",".join(parts)
 
