@@ -77,120 +77,123 @@ if options.procs != None:
 
 #----------------------------------------
 
-assert len(ARGV) == 1
-
-inputFname = ARGV.pop(0)
-
-#----------------------------------------
-
-
 import ROOT 
 ROOT.gROOT.SetBatch(True)
 
 # must load this library to have RooPower (otherwise we get a SIGSEGV)
 ROOT.gSystem.Load("$CMSSW_BASE/lib/$SCRAM_ARCH/libHiggsAnalysisCombinedLimit.so")
 
-fin = ROOT.TFile(inputFname)
-assert fin.IsOpen(), "could not open input workspace file " + inputFname
 
-ws = fin.Get(wsname)
+for inputFname in ARGV:
 
-assert ws != None, "could not find workspace '%s' in file '%s'" % (wsname, inputFname)
+    fin = ROOT.TFile(inputFname)
+    assert fin.IsOpen(), "could not open input workspace file " + inputFname
 
-#----------
-# get the list of all categories
-#----------
-if options.cats == None:
-    allCats = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
-else:
-    allCats = options.cats
+    ws = fin.Get(wsname)
 
-allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
+    assert ws != None, "could not find workspace '%s' in file '%s'" % (wsname, inputFname)
 
-if options.procs == None:
-    allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
-else:
-    allProcs = options.procs
+    #----------
+    # get the list of all categories
+    #----------
+    if options.cats == None:
+        allCats = utils.getCatEntries(utils.getObj(ws, 'allCategories'))
+    else:
+        allCats = options.cats
 
-#----------
+    allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
 
-# table with number of signal events expected and number of MC
-# events with links to plots
+    if options.procs == None:
+        allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
+    else:
+        allProcs = options.procs
 
-header = [ "proc","","mass","" ] + allCats
+    #----------
 
-print ",".join(header)
+    # table with number of signal events expected and number of MC
+    # events with links to plots
 
-#----------
-# background
-#----------
-line = [ "bkg", "", "", ""]
-for cat in allCats:
-    dataset = utils.getObj(ws, "bkg_%s" % cat)
-    line.append(dataset.sumEntries())    
-print ",".join([str(x) for x in line ])
+    header = [ "proc","","mass","" ] + allCats
 
-#----------
-# observed number of events
-#----------
-if options.obs:
-    line = [ "obs", "", "", ""]
+    print ",".join(header)
 
+    #----------
+    # background
+    #----------
+    line = [ "bkg", "", "", ""]
     for cat in allCats:
-        dataset = utils.getObj(ws, "data_%s" % cat)
+        dataset = utils.getObj(ws, "bkg_%s" % cat)
         line.append(dataset.sumEntries())    
     print ",".join([str(x) for x in line ])
 
-
-#----------
-# signal at different masses and production mechanisms
-#----------
-
-for proc in allProcs:
-    for mass in allMasses:
-
-        line = [ "sig", proc, mass, "" ]
+    #----------
+    # observed number of events
+    #----------
+    if options.obs:
+        line = [ "obs", "", "", ""]
 
         for cat in allCats:
-
-            # e.g. sig_Hem_unbinned_vbf_120_cat3
-            if options.mcEvents:
-                name = "_".join([
-                    "sig",
-                    "Hem",
-                    "unbinned",
-                    proc,
-                    str(mass),
-                    cat
-                    ])
-            else:
-                # binned dataset
-                # e.g. sig_Hem_vbf_115_cat10
-                name = "_".join([
-                    "sig",
-                    "Hem",
-                    proc,
-                    str(mass),
-                    cat
-                    ])
-
-            dataset = utils.getObj(ws, name)
-
-            #----------
-            # number of expected events
-            #----------
-
-            if options.mcEvents:
-                # number of MC events
-                line.append(dataset.numEntries())
-            else:
-                # number of expected events
-                line.append(dataset.sumEntries() * options.signalScaling)
-
-        # end of loop over categories
-
+            dataset = utils.getObj(ws, "data_%s" % cat)
+            line.append(dataset.sumEntries())    
         print ",".join([str(x) for x in line ])
 
-    # end of loop over masses
 
-# end of loop over processes
+    #----------
+    # signal at different masses and production mechanisms
+    #----------
+
+    for proc in allProcs:
+        for mass in allMasses:
+
+            line = [ "sig", proc, mass, "" ]
+
+            for cat in allCats:
+
+                # e.g. sig_Hem_unbinned_vbf_120_cat3
+                if options.mcEvents:
+                    name = "_".join([
+                        "sig",
+                        "Hem",
+                        "unbinned",
+                        proc,
+                        str(mass),
+                        cat
+                        ])
+                else:
+                    # binned dataset
+                    # e.g. sig_Hem_vbf_115_cat10
+                    name = "_".join([
+                        "sig",
+                        "Hem",
+                        proc,
+                        str(mass),
+                        cat
+                        ])
+
+                dataset = utils.getObj(ws, name)
+
+                #----------
+                # number of expected events
+                #----------
+
+                if options.mcEvents:
+                    # number of MC events
+                    line.append(dataset.numEntries())
+                else:
+                    # number of expected events
+                    line.append(dataset.sumEntries() * options.signalScaling)
+
+            # end of loop over categories
+
+            print ",".join([str(x) for x in line ])
+
+        # end of loop over masses
+
+    # end of loop over processes
+
+    print
+
+    ROOT.gROOT.cd()
+    fin.Close()
+
+# end of loop over files
