@@ -55,6 +55,14 @@ parser.add_option("--obs",
                   help="also print the number of observed events",
                   )
 
+parser.add_option("--mc-events",
+                  dest = "mcEvents",
+                  default = False,
+                  action = "store_true",
+                  help="use unbinned datasets (for signal only) to print the number of MC events",
+                  )
+
+
 (options, ARGV) = parser.parse_args()
 
 if options.cats != None:
@@ -145,13 +153,39 @@ for proc in allProcs:
 
         for cat in allCats:
 
-            dataset = utils.getObj(ws, "sig_Hem_unbinned_%s_%d_%s" % (proc, mass, cat))
+            # e.g. sig_Hem_unbinned_vbf_120_cat3
+            if options.mcEvents:
+                name = "_".join([
+                    "sig",
+                    "Hem",
+                    "unbinned",
+                    proc,
+                    str(mass),
+                    cat
+                    ])
+            else:
+                # binned dataset
+                # e.g. sig_Hem_vbf_115_cat10
+                name = "_".join([
+                    "sig",
+                    "Hem",
+                    proc,
+                    str(mass),
+                    cat
+                    ])
+
+            dataset = utils.getObj(ws, name)
 
             #----------
             # number of expected events
             #----------
 
-            line.append(dataset.sumEntries() * options.signalScaling)
+            if options.mcEvents:
+                # number of MC events
+                line.append(dataset.numEntries())
+            else:
+                # number of expected events
+                line.append(dataset.sumEntries() * options.signalScaling)
 
         # end of loop over categories
 
