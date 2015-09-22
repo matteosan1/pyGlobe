@@ -49,6 +49,13 @@ parser.add_option("--proc",
                   help="comma separated list of process names (default is to use all found in the workspace)",
                   )
 
+parser.add_option("--mass",
+                  dest = "masses",
+                  type = str,
+                  default = None,
+                  help="comma separated list of masses (default is to use all found in the workspace)",
+                  )
+
 parser.add_option("--obs",
                   default = False,
                   action = "store_true",
@@ -70,6 +77,9 @@ if options.cats != None:
 
 if options.procs != None:
     options.procs = options.procs.split(',')
+
+if options.masses != None:
+    options.masses = [ int(x) for x in options.masses.split(',') ]
 
 ### if not options.simultaneous and options.signalScaling != 1:
 ###     print >> "--scale is currently only supported with --simultaneous"
@@ -101,7 +111,10 @@ for inputFname in ARGV:
     else:
         allCats = options.cats
 
-    allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
+    if options.masses != None:
+        allMasses = list(options.masses)
+    else:
+        allMasses = [ int(x) for x in utils.getCatEntries(utils.getObj(ws, 'allSigMasses')) ]
 
     if options.procs == None:
         allProcs  = utils.getCatEntries(utils.getObj(ws, 'allSigProcesses'))
