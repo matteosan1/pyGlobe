@@ -181,7 +181,7 @@ elif options.format == 'text':
     else:
         fmt = " %5s"
 
-    print "   "," ".join([ fmt % cat for cat in allCats])
+    print "    |"," | ".join([ fmt % cat for cat in allCats])
     for proc in allProcs:
 
         if options.uncert:
@@ -189,7 +189,7 @@ elif options.format == 'text':
         else:
             parts = [ "%+6.2f%%" % (relDeviations[cat][proc] * 100) for cat in allCats ]
 
-        print "%-3s" % proc," ".join(parts)
+        print "%-3s |" % proc," | ".join(parts)
 
     print
 elif options.format == 'python':
