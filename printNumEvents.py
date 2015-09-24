@@ -10,41 +10,6 @@ gcs = []
 
 wsname = "CMS_emu_workspace"
 
-
-#----------------------------------------------------------------------
-
-def sumWeightsInMassRange(ws, dataset, minMass, maxMass, useWeights):
-    # returns the sum of weights of the dataset in the given mass range
-
-    # massVar = utils.getObj(ws, "CMS_emu_mass")
-
-    retval = 0
-
-    for i in range(dataset.numEntries()):
-
-        values = dataset.get(i)
-
-        # not super efficient but should work
-        massVar = values.find("CMS_emu_mass")
-
-        if minMass != None and massVar.getVal() < minMass:
-            continue
-
-        if maxMass != None and massVar.getVal() > maxMass:
-            continue
-
-        # add the weight to the sum
-        if useWeights:
-            retval += dataset.weight()
-        else:
-            retval += 1
-
-        # weightVar = 
-        # retval += 
-
-    return retval
-
-
 #----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
@@ -266,11 +231,11 @@ for inputFname in ARGV:
                 #----------
 
                 # number of MC events or number of expected events
-                value = sumWeightsInMassRange(ws, dataset,
-                                              options.sigRecoMassRange[0],
-                                              options.sigRecoMassRange[1],
-                                              useWeights = not options.mcEvents
-                                              )
+                value = utils.sumWeightsInMassRange(ws, dataset,
+                                                    options.sigRecoMassRange[0],
+                                                    options.sigRecoMassRange[1],
+                                                    useWeights = not options.mcEvents
+                                                    )
                 
                 if not options.mcEvents:
                     value *= options.signalScaling
