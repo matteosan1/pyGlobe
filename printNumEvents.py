@@ -10,6 +10,41 @@ gcs = []
 
 wsname = "CMS_emu_workspace"
 
+
+#----------------------------------------------------------------------
+
+def sumWeightsInMassRange(ws, dataset, minMass, maxMass, useWeights):
+    # returns the sum of weights of the dataset in the given mass range
+
+    # massVar = utils.getObj(ws, "CMS_emu_mass")
+
+    retval = 0
+
+    for i in range(dataset.numEntries()):
+
+        values = dataset.get(i)
+
+        # not super efficient but should work
+        massVar = values.find("CMS_emu_mass")
+
+        if minMass != None and massVar.getVal() < minMass:
+            continue
+
+        if maxMass != None and massVar.getVal() > maxMass:
+            continue
+
+        # add the weight to the sum
+        if useWeights:
+            retval += dataset.weight()
+        else:
+            retval += 1
+
+        # weightVar = 
+        # retval += 
+
+    return retval
+
+
 #----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
@@ -69,6 +104,13 @@ parser.add_option("--mc-events",
                   help="use unbinned datasets (for signal only) to print the number of MC events",
                   )
 
+parser.add_option("--sig-reco-mass-range",
+                  dest = "sigRecoMassRange",
+                  default = None,
+                  type = str,
+                  help="only count signal events in the range minMass,maxMass of reconstructed mass",
+                  )
+
 
 (options, ARGV) = parser.parse_args()
 
@@ -84,6 +126,12 @@ if options.masses != None:
 ### if not options.simultaneous and options.signalScaling != 1:
 ###     print >> "--scale is currently only supported with --simultaneous"
 ###     sys.exit(1)
+
+if options.sigRecoMassRange:
+    options.sigRecoMassRange = [ float(x) for x in options.sigRecoMassRange.split(',') ]
+    assert len(options.sigRecoMassRange) == 2
+else:
+    options.sigRecoMassRange = (None, None)
 
 #----------------------------------------
 
@@ -163,7 +211,7 @@ for inputFname in ARGV:
             for cat in allCats:
 
                 # e.g. sig_Hem_unbinned_vbf_120_cat3
-                if options.mcEvents:
+                if options.mcEvents or options.sigRecoMassRange:
                     name = "_".join([
                         "sig",
                         "Hem",
@@ -189,12 +237,17 @@ for inputFname in ARGV:
                 # number of expected events
                 #----------
 
-                if options.mcEvents:
-                    # number of MC events
-                    line.append(dataset.numEntries())
-                else:
-                    # number of expected events
-                    line.append(dataset.sumEntries() * options.signalScaling)
+                # number of MC events or number of expected events
+                value = sumWeightsInMassRange(ws, dataset,
+                                              options.sigRecoMassRange[0],
+                                              options.sigRecoMassRange[1],
+                                              useWeights = not options.mcEvents
+                                              )
+                
+                if not options.mcEvents:
+                    value *= options.signalScaling
+
+                line.append(value)
 
             # end of loop over categories
 
