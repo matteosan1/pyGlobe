@@ -42,6 +42,15 @@ if __name__ == '__main__':
     # select itype
     datas = [ data[itype] for data in datas ]
 
+    for fname, data in zip(fnames, datas):
+        events = [ line for line in data.values() if line['cat'] == sourceCat ] 
+        print "%.1f (%d MC) events in %s" % (
+            sum([ line['weight'] for line in events ]),
+            len(events),
+            fname)
+
+    print
+    
     # select by category: find those events which were or will be in sourceCat
     ### datas = [
     ###     dict([ (key,line) for key,line in data.items() if line['cat'] == cat ])
@@ -73,17 +82,46 @@ if __name__ == '__main__':
 
     print "common events:"
 
-    for destCat in allCats:
-        if destCat == sourceCat:
-            print "  events remaining in cat",sourceCat,":"
-        else:
-            print "  events moving from", sourceCat, "in", fnames[0], "to", destCat, "in", fnames[1], ":"
+    #----------
+    # print the full matrix, including events moving into the category
+    #----------
+    def printMigration(srcCat, destCat):
+        # sourceCat is the category specified by on the command line
 
-        for key in migrationMatrix[sourceCat][destCat]:
+        if destCat == srcCat:
+            print "  events remaining in cat",srcCat,
+        else:
+            print "  events moving from cat", srcCat, "in", fnames[0], "to cat", destCat, "in", fnames[1],
+
+        # take weights from the first file
+        events = [ datas[0][key] for key in migrationMatrix[srcCat][destCat] ]
+        print "(%.1f, %d MC):" % (sum([line['weight'] for line in events]), len(events))
+
+        for key in migrationMatrix[srcCat][destCat]:
             print "   ",key
 
         print
-    
+
+
+    #----------
+    # first print events going out of the specified category
+    #----------
+
+    print "  migrating out of cat",sourceCat
+    print
+    for destCat in allCats:
+        if destCat != sourceCat:
+            printMigration(sourceCat, destCat)
+
+    printMigration(sourceCat, sourceCat)
+
+    print "  migrating out of cat",sourceCat
+    print
+
+    for srcCat in allCats:
+        if srcCat != sourceCat:
+            printMigration(srcCat, sourceCat)
+
     #----------
     # find keys only one of the two (these dropped out / came in; no category migration)
     #----------
@@ -91,19 +129,36 @@ if __name__ == '__main__':
 
     for fileIndex, (fname, keys) in enumerate(zip(fnames, keysOnlyIn)):
 
+        #----------
+
+        sumWeights = 0.
+        thisKeys = []
+        for key in keys:
+
+            line = datas[fileIndex][key]
+
+            cat = line['cat']
+
+            if cat == sourceCat:
+                thisKeys.append(key)
+
+                sumWeights += line['weight']
+
+        thisKeys.sort()
+
+        #----------
+
         print "events only in",fname,
 
         if fileIndex == 0:
-            print "(going out)"
+            print "(going out)",
         else:
-            print "(coming in)"
+            print "(coming in)",
 
-        keys = sorted(keys)
+        print "(%.1f, %d MC):" % (sumWeights, len(thisKeys))
 
-        for key in keys:
+        #----------
+        for key in thisKeys:
 
-            cat = datas[fileIndex][key]['cat']
-
-            if cat == sourceCat:
-                print "   ",key
+            print "   ",key
     
