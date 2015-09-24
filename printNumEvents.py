@@ -111,6 +111,12 @@ parser.add_option("--sig-reco-mass-range",
                   help="only count signal events in the range minMass,maxMass of reconstructed mass",
                   )
 
+parser.add_option("--sumcat",
+                  default = False,
+                  action = "store_true",
+                  help="add a column with the sum over categories",
+                  )
+
 
 (options, ARGV) = parser.parse_args()
 
@@ -176,26 +182,46 @@ for inputFname in ARGV:
 
     header = [ "proc","","mass","" ] + allCats
 
+    if options.sumcat:
+        header.append("sum")
+
     print ",".join(header)
 
     #----------
     # background
     #----------
     line = [ "bkg", "", "", ""]
+
+    catSum = 0.
+
     for cat in allCats:
         dataset = utils.getObj(ws, "bkg_%s" % cat)
-        line.append(dataset.sumEntries())    
+        line.append(dataset.sumEntries())
+        catSum += line[-1]
+
+    if options.sumcat:
+        line.append(catSum)
+    
     print ",".join([str(x) for x in line ])
 
     #----------
     # observed number of events
     #----------
+
+    catSum = 0
+
     if options.obs:
         line = [ "obs", "", "", ""]
 
         for cat in allCats:
             dataset = utils.getObj(ws, "data_%s" % cat)
             line.append(dataset.sumEntries())    
+
+            catSum += line[-1]
+
+        if options.sumcat:
+            line.append(catSum)
+
         print ",".join([str(x) for x in line ])
 
 
@@ -207,6 +233,8 @@ for inputFname in ARGV:
         for mass in allMasses:
 
             line = [ "sig", proc, mass, "" ]
+
+            catSum = 0.
 
             for cat in allCats:
 
@@ -248,8 +276,12 @@ for inputFname in ARGV:
                     value *= options.signalScaling
 
                 line.append(value)
+                catSum += line[-1]
 
             # end of loop over categories
+
+            if options.sumcat:
+                line.append(catSum)
 
             print ",".join([str(x) for x in line ])
 
