@@ -59,6 +59,12 @@ parser.add_option("--unbinned",
                   help="use the unbinned datasets instead of the binned ones (e.g. useful with --format csv-numentries which otherwise just returns the number of bins)",
                   )
 
+parser.add_option("--scale",
+                  default = 1,
+                  type = float,
+                  help="scale signal by the given amount (useful together with --abs)",
+                  )
+
 (options, ARGV) = parser.parse_args()
 
 fnameNominal, fnameUp, fnameDown = ARGV
@@ -148,9 +154,9 @@ absDeviations = {}
 for proc in allProcs:
     for cat in allCats:
 
-        nom  = numSigEvents['nom'][cat][proc]
-        up   = numSigEvents['up'][cat][proc]
-        down = numSigEvents['down'][cat][proc]
+        nom  = numSigEvents['nom'][cat][proc]  * options.scale
+        up   = numSigEvents['up'][cat][proc]   * options.scale
+        down = numSigEvents['down'][cat][proc] * options.scale
 
         # check that up and down are on opposite sides of nominal
 
