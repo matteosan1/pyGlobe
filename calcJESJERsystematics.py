@@ -47,6 +47,12 @@ parser.add_option("--uncert",
                   help="also print uncertainties, derived from MC statistics assuming equally weighted events and using the Gaussian sqrt{N} approximation. Works only if the uncertainties python package is installed. Implies --unbinned.",
                   )
 
+parser.add_option("--abs",
+                  default = False,
+                  action = "store_true",
+                  help="print the deviation in terms of absolute number of events (for the default output format)",
+                  )
+
 parser.add_option("--unbinned",
                   default = False,
                   action = "store_true",
@@ -137,6 +143,7 @@ for fname, typename in  ((fnameNominal, "nom"),
 # first index is category
 # second index is signal process
 relDeviations = {}
+absDeviations = {}
 
 for proc in allProcs:
     for cat in allCats:
@@ -165,6 +172,8 @@ for proc in allProcs:
 
         relDeviations.setdefault(cat,{})[proc] = rel
 
+        # also calculate the (symmetrized) absolute uncertainty
+        absDeviations.setdefault(cat,{})[proc] = (up - down) / 2.0
 
 if options.format == 'csv':
     # print in CSV format
@@ -176,18 +185,39 @@ if options.format == 'csv':
     
     
 elif options.format == 'text':
-    if options.uncert:
-        fmt = " %14s"
+    if options.abs:
+        deviations = absDeviations
     else:
-        fmt = " %5s"
+        deviations = relDeviations
+
+    if options.uncert:
+        if options.abs:
+            fmt = " %17s"
+        else:
+            fmt = " %14s"
+    else:
+        if options.abs:
+            fmt = " %7s"
+        else:
+            fmt = " %5s"
 
     print "    |"," | ".join([ fmt % cat for cat in allCats])
     for proc in allProcs:
 
         if options.uncert:
-            parts = [ "%+6.2f+/-%5.2f%%" % (relDeviations[cat][proc].n * 100, relDeviations[cat][proc].std_dev * 100) for cat in allCats ]
+            if options.abs:
+                fmt = "%+8.1f+/-%7.1f"
+            else:
+                fmt = "%+6.2f+/-%5.2f%%"
+
+            parts = [ fmt % (deviations[cat][proc].n * 100, deviations[cat][proc].std_dev * 100) for cat in allCats ]
+
         else:
-            parts = [ "%+6.2f%%" % (relDeviations[cat][proc] * 100) for cat in allCats ]
+            if options.abs:
+                fmt = "%+8.1f"
+            else:
+                fmt = "%+6.2f%%"
+            parts = [ fmt % (deviations[cat][proc] * 100) for cat in allCats ]
 
         print "%-3s |" % proc," | ".join(parts)
 
@@ -195,7 +225,11 @@ elif options.format == 'text':
 elif options.format == 'python':
     # this is for using it in python files read when
     # generating the combine datacards
-    pprint(relDeviations)
+
+    if options.abs:
+        pprint(absDeviations)
+    else:
+        pprint(relDeviations)
 
 elif options.format in ("csv-numevents", "csv-numentries"):
     # print the absolute number of signal events in CSV format
