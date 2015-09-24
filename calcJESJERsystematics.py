@@ -13,6 +13,14 @@ mass = 125
 
 #----------------------------------------------------------------------
 
+def addUncert(expectedNumEvents, numMCentries):
+    import uncertainties
+    import math
+
+    # TODO: add protection against zero events
+    return uncertainties.ufloat(expectedNumEvents,
+                                expectedNumEvents / math.sqrt(numMCentries))
+
 #----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
@@ -33,6 +41,12 @@ parser.add_option("--format",
                   help="output format in which the results should be printed",
                   )
 
+parser.add_option("--uncert",
+                  default = False,
+                  action = "store_true",
+                  help="also print uncertainties, derived from MC statistics assuming equally weighted events and using the Gaussian sqrt{N} approximation. Works only if the uncertainties python package is installed. Implies --unbinned.",
+                  )
+
 parser.add_option("--unbinned",
                   default = False,
                   action = "store_true",
@@ -42,6 +56,10 @@ parser.add_option("--unbinned",
 (options, ARGV) = parser.parse_args()
 
 fnameNominal, fnameUp, fnameDown = ARGV
+
+if options.uncert:
+    options.unbinned = True
+
 #----------------------------------------
 
 
@@ -123,14 +141,24 @@ relDeviations = {}
 for proc in allProcs:
     for cat in allCats:
 
-        nom = numSigEvents['nom'][cat][proc]
-        up = numSigEvents['up'][cat][proc]
+        nom  = numSigEvents['nom'][cat][proc]
+        up   = numSigEvents['up'][cat][proc]
         down = numSigEvents['down'][cat][proc]
 
         # check that up and down are on opposite sides of nominal
 
         if not ((up >= nom and nom >= down) or (up <= nom and nom <= down)):
             print >> sys.stderr, "WARNING: up/down are NOT on opposite sides of nominal for",cat,proc,": up=",up,"nom=",nom,"down=",down
+
+        #----------
+        # add uncertainties based on limited MC statistics
+        # if requested
+        #----------
+        if options.uncert:
+            nom  = addUncert(nom,  numSigEntries['nom'][cat][proc])
+            up   = addUncert(up,   numSigEntries['up'][cat][proc])
+            down = addUncert(down, numSigEntries['down'][cat][proc])
+        #----------
 
         # take (up - down) / (2 * nominal)
         rel = (up - down) / (2.0 * nom)
@@ -148,9 +176,18 @@ if options.format == 'csv':
     
     
 elif options.format == 'text':
-    print "   "," ".join([ " %5s" % cat for cat in allCats])
+    if options.uncert:
+        fmt = " %14s"
+    else:
+        fmt = " %5s"
+
+    print "   "," ".join([ fmt % cat for cat in allCats])
     for proc in allProcs:
-        parts = [ "%+5.2f%%" % (relDeviations[cat][proc] * 100) for cat in allCats ]
+
+        if options.uncert:
+            parts = [ "%+6.2f+/-%5.2f%%" % (relDeviations[cat][proc].n * 100, relDeviations[cat][proc].std_dev * 100) for cat in allCats ]
+        else:
+            parts = [ "%+6.2f%%" % (relDeviations[cat][proc] * 100) for cat in allCats ]
 
         print "%-3s" % proc," ".join(parts)
 
