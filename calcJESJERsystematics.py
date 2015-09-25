@@ -13,6 +13,14 @@ mass = 125
 
 #----------------------------------------------------------------------
 
+def addUncert(expectedNumEvents, numMCentries):
+    import uncertainties
+    import math
+
+    # TODO: add protection against zero events
+    return uncertainties.ufloat(expectedNumEvents,
+                                expectedNumEvents / math.sqrt(numMCentries))
+
 #----------------------------------------------------------------------
 # main
 #----------------------------------------------------------------------
@@ -28,14 +36,42 @@ parser = OptionParser("""
 
 parser.add_option("--format",
                   type = "choice",
-                  choices = [ "text", "csv", "python", "csv-numevents" ],
+                  choices = [ "text", "csv", "python", "csv-numevents", "csv-numentries" ],
                   default = "text",
                   help="output format in which the results should be printed",
+                  )
+
+parser.add_option("--uncert",
+                  default = False,
+                  action = "store_true",
+                  help="also print uncertainties, derived from MC statistics assuming equally weighted events and using the Gaussian sqrt{N} approximation. Works only if the uncertainties python package is installed. Implies --unbinned.",
+                  )
+
+parser.add_option("--abs",
+                  default = False,
+                  action = "store_true",
+                  help="print the deviation in terms of absolute number of events (for the default output format)",
+                  )
+
+parser.add_option("--unbinned",
+                  default = False,
+                  action = "store_true",
+                  help="use the unbinned datasets instead of the binned ones (e.g. useful with --format csv-numentries which otherwise just returns the number of bins)",
+                  )
+
+parser.add_option("--scale",
+                  default = 1,
+                  type = float,
+                  help="scale signal by the given amount (useful together with --abs)",
                   )
 
 (options, ARGV) = parser.parse_args()
 
 fnameNominal, fnameUp, fnameDown = ARGV
+
+if options.uncert:
+    options.unbinned = True
+
 #----------------------------------------
 
 
@@ -47,7 +83,8 @@ fnameNominal, fnameUp, fnameDown = ARGV
 # third index is the signal process
 # value is the number of expected signal events
 
-numSigEvents = {}
+numSigEvents = {} # number of expected events
+numSigEntries = {} # number of MC events (for checks)
 
 allCats = None
 allProcs = None
@@ -74,29 +111,31 @@ for fname, typename in  ((fnameNominal, "nom"),
         for proc in allProcs:
 
             # e.g. sig_Hem_unbinned_vbf_120_cat3
-            name = "_".join([
-                "sig",
-                "Hem",
-                "unbinned",
-                proc,
-                str(mass),
-                cat
-                ])
-
-            # binned dataset
-            # e.g. sig_Hem_vbf_115_cat10
-            name = "_".join([
-                "sig",
-                "Hem",
-                proc,
-                str(mass),
-                cat
-                ])
+            if options.unbinned:
+                name = "_".join([
+                    "sig",
+                    "Hem",
+                    "unbinned",
+                    proc,
+                    str(mass),
+                    cat
+                    ])
+            else:
+                # binned dataset
+                # e.g. sig_Hem_vbf_115_cat10
+                name = "_".join([
+                    "sig",
+                    "Hem",
+                    proc,
+                    str(mass),
+                    cat
+                    ])
 
             # get the signal MC dataset
             ds = utils.getObj(ws, name)
 
             numSigEvents.setdefault(typename, {}).setdefault(cat,{})[proc] = ds.sumEntries()
+            numSigEntries.setdefault(typename, {}).setdefault(cat,{})[proc] = ds.numEntries()
 
         # end of loop over signal processes
     # end of loop over categories
@@ -110,24 +149,37 @@ for fname, typename in  ((fnameNominal, "nom"),
 # first index is category
 # second index is signal process
 relDeviations = {}
+absDeviations = {}
 
 for proc in allProcs:
     for cat in allCats:
 
-        nom = numSigEvents['nom'][cat][proc]
-        up = numSigEvents['up'][cat][proc]
-        down = numSigEvents['down'][cat][proc]
+        nom  = numSigEvents['nom'][cat][proc]  * options.scale
+        up   = numSigEvents['up'][cat][proc]   * options.scale
+        down = numSigEvents['down'][cat][proc] * options.scale
 
         # check that up and down are on opposite sides of nominal
 
         if not ((up >= nom and nom >= down) or (up <= nom and nom <= down)):
             print >> sys.stderr, "WARNING: up/down are NOT on opposite sides of nominal for",cat,proc,": up=",up,"nom=",nom,"down=",down
 
+        #----------
+        # add uncertainties based on limited MC statistics
+        # if requested
+        #----------
+        if options.uncert:
+            nom  = addUncert(nom,  numSigEntries['nom'][cat][proc])
+            up   = addUncert(up,   numSigEntries['up'][cat][proc])
+            down = addUncert(down, numSigEntries['down'][cat][proc])
+        #----------
+
         # take (up - down) / (2 * nominal)
         rel = (up - down) / (2.0 * nom)
 
         relDeviations.setdefault(cat,{})[proc] = rel
 
+        # also calculate the (symmetrized) absolute uncertainty
+        absDeviations.setdefault(cat,{})[proc] = (up - down) / 2.0
 
 if options.format == 'csv':
     # print in CSV format
@@ -139,25 +191,67 @@ if options.format == 'csv':
     
     
 elif options.format == 'text':
-    print "   "," ".join([ " %5s" % cat for cat in allCats])
-    for proc in allProcs:
-        parts = [ "%+5.2f%%" % (relDeviations[cat][proc] * 100) for cat in allCats ]
+    if options.abs:
+        deviations = absDeviations
+    else:
+        deviations = relDeviations
 
-        print "%-3s" % proc," ".join(parts)
+    if options.uncert:
+        if options.abs:
+            fmt = " %17s"
+        else:
+            fmt = " %14s"
+    else:
+        if options.abs:
+            fmt = " %7s"
+        else:
+            fmt = " %5s"
+
+    print "    |"," | ".join([ fmt % cat for cat in allCats])
+    for proc in allProcs:
+
+        if options.uncert:
+            if options.abs:
+                fmt = "%+8.1f+/-%7.1f"
+            else:
+                fmt = "%+6.2f+/-%5.2f%%"
+
+            parts = [ fmt % (deviations[cat][proc].n * 100, deviations[cat][proc].std_dev * 100) for cat in allCats ]
+
+        else:
+            if options.abs:
+                fmt = "%+8.1f"
+            else:
+                fmt = "%+6.2f%%"
+            parts = [ fmt % (deviations[cat][proc] * 100) for cat in allCats ]
+
+        print "%-3s |" % proc," | ".join(parts)
 
     print
 elif options.format == 'python':
     # this is for using it in python files read when
     # generating the combine datacards
-    pprint(relDeviations)
 
-elif options.format == "csv-numevents":
+    if options.abs:
+        pprint(absDeviations)
+    else:
+        pprint(relDeviations)
+
+elif options.format in ("csv-numevents", "csv-numentries"):
     # print the absolute number of signal events in CSV format
+    if options.format == "csv-numevents":
+        theData = numSigEvents
+        theFormat = "%f"
+    elif options.format == 'csv-numentries':
+        theData = numSigEntries
+        theFormat = "%d"
+    else:
+        raise Exception("internal error")
     
     print ",".join([ "proc", "shift", "" ] + [ "%s" % cat for cat in allCats])
     for proc in allProcs:
         for shift in [ "nom", "up", "down"]:
-            parts = [ proc, shift, "" ] + [ "%f" % numSigEvents[shift][cat][proc] for cat in allCats ]
+            parts = [ proc, shift, "" ] + [ theFormat % theData[shift][cat][proc] for cat in allCats ]
 
             print ",".join(parts)
 

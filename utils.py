@@ -290,3 +290,36 @@ def getLeafNodes(pdf):
 
 
 #----------------------------------------------------------------------
+
+def sumWeightsInMassRange(ws, dataset, minMass, maxMass, useWeights):
+    # returns the sum of weights of the dataset in the given mass range
+
+    # massVar = utils.getObj(ws, "CMS_emu_mass")
+
+    retval = 0
+
+    for i in range(dataset.numEntries()):
+
+        values = dataset.get(i)
+
+        # not super efficient but should work
+        massVar = values.find("CMS_emu_mass")
+
+        if minMass != None and massVar.getVal() < minMass:
+            continue
+
+        if maxMass != None and massVar.getVal() > maxMass:
+            continue
+
+        # add the weight to the sum
+        if useWeights:
+            retval += dataset.weight()
+        else:
+            retval += 1
+
+        # weightVar = 
+        # retval += 
+
+    return retval
+
+#----------------------------------------------------------------------
